@@ -6,20 +6,23 @@
 
 namespace SMPL
 {
-    class UnexpectedToken : public std::logic_error
+    class UnexpectedToken
     {
     public:
-        UnexpectedToken(size_t index, std::string token);
-        UnexpectedToken(size_t index, char token);
+        UnexpectedToken(size_t index, std::string token)
+            : index(index), token(token) {};
+        UnexpectedToken(size_t index, char token)
+            : index(index), token(std::string(1, token)) {};
 
         size_t index;
         std::string token;
     };
 
-    class IsNotDefined : public std::logic_error
+    class IsNotDefined
     {
     public:
-        IsNotDefined(size_t index, std::string name);
+        IsNotDefined(size_t index, std::string name)
+            : index(index), name(name) {};
 
         size_t index;
         std::string name;
@@ -28,7 +31,7 @@ namespace SMPL
     class Env
     {
     public:
-        Env();
+        Env() {};
 
         using stdFunc_t = double (*)(double a);
 
@@ -42,7 +45,7 @@ namespace SMPL
     class Interpreter
     {
     public:
-        Interpreter(Env);
+        Interpreter(Env *env) : env(env) {};
 
         void processAssign(AST::Assign *);
         void processFunction(AST::Function *);
@@ -53,8 +56,8 @@ namespace SMPL
 
         double call(AST::Call *);
 
-        Env env;
+        Env *env;
     };
 
-    void eval(std::string code, Env env);
+    void eval(std::string code, Env *env);
 }

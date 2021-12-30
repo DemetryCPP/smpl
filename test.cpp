@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
 
     in.close();
 
-    SMPL::Env env{};
+    auto env = new SMPL::Env;
 
     SMPL::eval(code, env);
 

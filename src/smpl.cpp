@@ -1,119 +1,88 @@
-#include <string>
-#include <stdexcept>
 #include <iostream>
-
 #include "smpl.hpp"
-#include "token.hpp"
 #include "parser.hpp"
-#include "nodes.hpp"
 
-SMPL::UnexpectedToken::UnexpectedToken(size_t index, std::string token)
-    : index(index), token(token), std::logic_error("Unexpected token \"" + token + "\" at " + std::to_string(index)) {};
+using namespace SMPL;
+using namespace AST;
+using namespace std;
 
-SMPL::UnexpectedToken::UnexpectedToken(size_t index, char token)
-    : UnexpectedToken(index, std::string(1, token)) {};
-
-SMPL::Env::Env() {};
-
-SMPL::IsNotDefined::IsNotDefined(size_t index, std::string name)
-    : name(name)
-    , index(index)
-    , std::logic_error("\"" + name + "\" is not defined") {};
-
-SMPL::Interpreter::Interpreter(SMPL::Env env)
-    : env(env){}
-
-void SMPL::eval(std::string code, SMPL::Env env)
+void SMPL::eval(string code, Env *env)
 {
-    AST::Parser *parser = new AST::Parser(Lexer(code));
+    auto parser = new Parser(new Lexer(code));
+    auto interpreter = new Interpreter(env);
 
-    env.stdFuncs.insert({
-        "print",
-        [](double x) { std::cout << x << std::endl; return 0.0; } 
-    });
-
-    SMPL::Interpreter interpreter(env);
-
+    env->stdFuncs["print"] = [](double x) { std::cout << x << std::endl; return x; };
 
     for (auto &&stmt : parser->stmts)
     {
         switch (stmt->type)
         {
-        case AST::Statement::Type::Assign:
-        {
-            AST::Assign *assign = (AST::Assign *)stmt;
-            interpreter.processAssign(assign);
+        case Statement::Type::Assign:
+            interpreter->processAssign((Assign *)stmt);
             break;
-        }
 
-        case AST::Statement::Type::Call:
-        {
-            AST::Call *call = (AST::Call *)stmt;
-            interpreter.call(call);
+        case Statement::Type::Call:
+            interpreter->call((Call *)stmt);
             break;
-        }
 
-        case AST::Statement::Type::Function:
-        {
-            AST::Function *function = (AST::Function *)stmt;
-            interpreter.processFunction(function);
+        case Statement::Type::Function:
+            interpreter->processFunction((Function *)stmt);
             break;
-        }
         }
     }
 }
 
-AST::Function *SMPL::Env::getFunction(std::string name)
+Function *Env::getFunction(string name)
 {
     for (auto &&f : this->functions)
         if (f->name == name)
             return f;
 }
 
-double SMPL::Interpreter::call(AST::Call *call)
+double Interpreter::call(Call *call)
 {
-    std::string name = call->name;
+    string name = call->name;
     double arg = solveExpr(call->expr);
 
-    if (this->env.stdFuncs.find(name) != this->env.stdFuncs.end())
-        return this->env.stdFuncs[name](arg);
+    if (env->stdFuncs.find(name) != env->stdFuncs.end())
+        return env->stdFuncs[name](arg);
 
-    std::map<std::string, double> &variables = this->env.variables;
-    AST::Function *func = this->env.getFunction(name);
+    map<string, double> &variables = env->variables;
+    Function *func = env->getFunction(name);
 
     double result;
 
     if (variables.find(func->arg) == variables.end())
     {
         variables[func->arg] = arg;
-        result = this->solveExpr(func->value);          // (*)
+        result = solveExpr(func->value);
         variables.erase(variables.find(func->arg));
     }
     else
     {
         double lastValue = variables[func->arg];
         variables[func->arg] = arg;
-        result = this->solveExpr(func->value);
+        result = solveExpr(func->value);
         variables[func->arg] = lastValue;
     }
 
     return result;
 }
 
-double SMPL::Interpreter::solveExpr(AST::Expr *expr)
+double Interpreter::solveExpr(Expr *expr)
 {
-    double result = solveTerm(expr->terms[0]);
+    double result = solveTerm(expr->nodes[0]);
     
-    for (size_t i = 1; i < expr->terms.size(); i++)
+    for (size_t i = 1; i < expr->nodes.size(); i++)
     {
         switch (expr->operators[i - 1])
         {
         case '+':
-            result += solveTerm(expr->terms[i]);
+            result += solveTerm(expr->nodes[i]);
             break;
         
         case '-':
-            result -= solveTerm(expr->terms[i]);
+            result -= solveTerm(expr->nodes[i]);
             break;
         }
     }
@@ -121,20 +90,20 @@ double SMPL::Interpreter::solveExpr(AST::Expr *expr)
     return result;
 }
 
-double SMPL::Interpreter::solveTerm(AST::Term *term)
+double Interpreter::solveTerm(Term *term)
 {
-    double result = solveFact(term->facts[0]);
+    double result = solveFact(term->nodes[0]);
     
-    for (size_t i = 1; i < term->facts.size(); i++)
+    for (size_t i = 1; i < term->nodes.size(); i++)
     {
         switch (term->operators[i - 1])
         {
         case '*':
-            result *= solveFact(term->facts[i]);
+            result *= solveFact(term->nodes[i]);
             break;
         
         case '/':
-            result /= solveFact(term->facts[i]);
+            result /= solveFact(term->nodes[i]);
             break;
         }
     }
@@ -142,48 +111,36 @@ double SMPL::Interpreter::solveTerm(AST::Term *term)
     return result;
 }
 
-double SMPL::Interpreter::solveFact(AST::Fact *fact)
+double Interpreter::solveFact(Fact *fact)
 {
     double result;
 
     switch (fact->type)
     {
-    case AST::Fact::Type::Elementary:
+    case Fact::Type::Literal:
     {
-        Token *token = ((AST::Elementary *)fact)->token;
+        auto token = ((Literal *)fact)->token;
 
         if (token->type == Token::Type::Id)          
-            return this->env.variables[token->value];
+            return env->variables[token->value];
 
         else if (token->type == Token::Type::Number)
             return std::stod(token->value);
     }
 
-    case AST::Fact::Type::Unary:
-        return -solveFact(((AST::Unary *)fact)->fact);
+    case Fact::Type::Unary:
+        return -solveFact(((Unary *)fact)->fact);
 
-    case AST::Fact::Type::Brackets:
-        return solveExpr(((AST::Bracket *)fact)->expr);
+    case Fact::Type::Brackets:
+        return solveExpr(((Brackets *)fact)->expr);
 
-    case AST::Fact::Type::Call:
-        AST::Call *call = (AST::Call *)fact;
-
-        if (this->env.stdFuncs.find(call->name) != this->env.stdFuncs.end())
-            return this->env.stdFuncs[call->name](solveExpr(call->expr));
-
-        return this->call(call);
+    case Fact::Type::Call:
+        return call((Call *)fact);
     }
 }
 
-void SMPL::Interpreter::processAssign(AST::Assign *assign)
-{
-    this->env.variables.insert({
-        assign->name,
-        solveExpr(assign->value)
-    });
-}
+void Interpreter::processAssign(Assign *assign)
+{ env->variables[assign->name] = solveExpr(assign->value); }
 
-void SMPL::Interpreter::processFunction(AST::Function *func)
-{
-    this->env.functions.push_back(func);
-}
+void Interpreter::processFunction(Function *func)
+{ env->functions.push_back(func); }

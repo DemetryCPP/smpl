@@ -14,16 +14,18 @@ public:
         CBracket,   // ')'
         Keyword,    // 'define'
         Equal,      // '='
-        Number,     // numbers
-        Null,       // null token
-        Id          // identificators
+        Number,     // \d+('.'\d+)?
+        Null,       // '\0'
+        Id          // [a-zA-Z]+
     };
 
-    Token(Token::Type, std::string);
-    Token(Token::Type, char);
-    Token();
+    Token(Type type, std::string value)
+        : type(type), value(value) {};
+    Token(Type type, char value)
+        : Token(type, std::string(1, value)) {};
+    Token() : Token(Token::Type::Null, "") {};
 
-    Token::Type type;
+    Type type;
     std::string value;
 
     void log();

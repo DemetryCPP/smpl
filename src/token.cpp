@@ -6,10 +6,6 @@
 #include "token.hpp"
 #include "smpl.hpp"
 
-Token::Token(Token::Type type, std::string value) : type(type), value(value) {};
-Token::Token(Token::Type type, char c) : Token(type, std::string(1, c)) {};
-Token::Token() : Token(Token::Type::Null, "") {};
-
 void Token::log()
 {
     const std::string names[] { 

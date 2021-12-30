@@ -1,159 +1,152 @@
 #include <iostream>
-
-#include "lexer.hpp"
-#include "token.hpp"
 #include "parser.hpp"
 #include "smpl.hpp"
-#include "nodes.hpp"
 
-AST::Parser::Parser(Lexer lex) : lex(lex) 
+using namespace SMPL;
+using namespace std;
+using namespace AST;
+
+Parser::Parser(Lexer *lex) : lex(lex) 
 {
-    this->next();
+    next();
 
-    while (this->current->type != Token::Type::Null)
+    while (current->type != Token::Type::Null)
     {
-        this->stmts.push_back(this->stmt());
-        this->match(";");
+        stmts.push_back(stmt());
+        match(";");
     }
 };
 
-void AST::Parser::next()
-{ this->current = this->lex.next(); }
-
-Token *AST::Parser::match(Token::Type type)
+Statement *Parser::stmt()
 {
-    if (this->current->type == type)
+    if (current->value == "define") return function();
+    else
+    {
+        string id = match(Token::Type::Id)->value;
+
+        if (current->value == "=")      return assign(id);
+        else if (current->value == "(") return call(id);
+    }
+
+    fail();
+}
+
+Function *Parser::function()
+{
+    match("define");
+    auto name = match(Token::Type::Id)->value;
+    match("(");
+    auto arg = match(Token::Type::Id)->value;
+    match(")");
+    match("=");
+    auto expr = this->expr();
+
+    return new Function(name, arg, expr);
+}
+
+Assign *Parser::assign(string id)
+{
+    match("=");
+    auto expr = this->expr();
+
+    return new Assign(id, expr);
+}
+
+Call *Parser::call(string id)
+{
+    match("(");
+    auto expr = this->expr();
+    match(")");
+
+    return new Call(id, expr);
+}
+
+Expr *Parser::expr()
+{
+    vector<AST::Term *> terms;
+    vector<char> operators;
+
+    terms.push_back(term());
+
+    while (current->type == Token::Type::AOperator)
+    {
+        operators.push_back(match(Token::Type::AOperator)->value[0]);
+        terms.push_back(term());
+    }
+
+    return new Expr(terms, operators);
+}
+
+Term *Parser::term()
+{
+    vector<Fact *> facts;
+    vector<char> operators;
+
+    facts.push_back(fact());
+    while (current->type == Token::Type::MOperator)
+    {
+        operators.push_back(match(Token::Type::MOperator)->value[0]);
+        facts.push_back(fact());
+    }
+
+    return new Term(facts, operators);
+}
+
+Fact *Parser::fact()
+{
+    if (current->type == Token::Type::Number)
+        return new Literal(match(Token::Type::Number));
+
+    else if (current->type == Token::Type::Id)
+    {
+        Token *id = match(Token::Type::Id);
+
+        if (current->value == "(") 
+            return call(id->value);
+        
+        return new Literal(id);
+    }
+    else if (current->value == "-") return unary();
+    else if (current->value == "(") return brackets();
+
+    fail();
+}
+
+Brackets *Parser::brackets()
+{
+    match("(");
+    auto expr = this->expr();
+    match(")");
+
+    return new Brackets(expr);
+}
+
+Unary *Parser::unary()
+{
+    match("-");
+    return new Unary('-', fact());
+}
+
+Token *Parser::match(Token::Type type)
+{
+    if (current->type == type)
     {
         Token *result = this->current;
-        this->next();
+        next();
         return result;
     }
-    else
-        throw new SMPL::UnexpectedToken(this->lex.index, this->current->value);
+    
+    fail();
 }
 
-void AST::Parser::match(std::string token)
+void Parser::match(std::string token)
 {
-    if (this->current->value == token)
-        this->next();
-    else
-        throw new SMPL::UnexpectedToken(this->lex.index, this->current->value);
+    if (current->value == token) next();
+    else throw new SMPL::UnexpectedToken(lex->index, current->value);
 }
 
-AST::Statement *AST::Parser::stmt()
-{
-    // std::cout << "stmt\n";
+void Parser::next()
+{ current = lex->next(); }
 
-    if (this->current->value == "define")
-        return this->function();
-    else
-    {
-        std::string id = this->match(Token::Type::Id)->value;
-
-        if (this->current->value == "=")        return this->assign(id);
-        else if (this->current->value == "(")   return this->call(id);
-    }
-}
-
-AST::Function *AST::Parser::function()
-{
-    // std::cout << "function\n";
-
-    this->match("define");
-    std::string name = this->match(Token::Type::Id)->value;
-    this->match("(");
-    std::string arg = this->match(Token::Type::Id)->value;
-    this->match(")");
-    this->match("=");
-    AST::Expr *expr = this->expr();
-
-    return new AST::Function(name, arg, expr);
-}
-
-AST::Assign *AST::Parser::assign(std::string id)
-{
-    // std::cout << "assign\n";
-
-    this->match("=");
-    AST::Expr *expr = this->expr();
-
-    return new AST::Assign(id, expr);
-}
-
-AST::Call *AST::Parser::call(std::string id)
-{
-    // std::cout << "call\n";
-
-    this->match("(");
-    AST::Expr *expr = this->expr();
-    this->match(")");
-
-    return new AST::Call(id, expr);
-}
-
-AST::Expr *AST::Parser::expr()
-{
-    // std::cout << "expr\n";
-
-    std::vector<AST::Term *> terms;
-    std::vector<char> operators;
-
-    terms.push_back(this->term());
-
-    while (this->current->type == Token::Type::AOperator)
-    {
-        operators.push_back(this->match(Token::Type::AOperator)->value[0]);
-        terms.push_back(this->term());
-    }
-
-    return new AST::Expr(terms, operators);
-}
-
-AST::Term *AST::Parser::term()
-{
-    // std::cout << "term\n";
-
-    std::vector<AST::Fact *> facts;
-    std::vector<char> operators;
-
-    facts.push_back(this->fact());
-    while (this->current->type == Token::Type::MOperator)
-    {
-        operators.push_back(this->match(Token::Type::MOperator)->value[0]);
-        facts.push_back(this->fact());
-    }
-
-    return new AST::Term(facts, operators);
-}
-
-AST::Fact *AST::Parser::fact()
-{
-    // std::cout << "fact\n";
-
-    if (this->current->type == Token::Type::Number)
-        return new AST::Elementary(this->match(Token::Type::Number));
-
-    else if (this->current->type == Token::Type::Id)
-    {
-        Token *id = this->match(Token::Type::Id);
-
-        if (this->current->value == "(") 
-            return this->call(id->value);
-        
-        return new AST::Elementary(id);
-    }
-    else if (this->current->value == "-")
-    {
-        this->match("-");
-        AST::Fact *fact = this->fact();
-
-        return new AST::Unary('-', fact);
-    }
-    else if (this->current->value == "(") 
-    {
-        this->match("(");
-        AST::Bracket *result = new AST::Bracket(this->expr());
-        this->match(")");
-        return result;
-    }
-}
+[[noreturn]] void Parser::fail()
+{ throw new UnexpectedToken(lex->index, current->value); }

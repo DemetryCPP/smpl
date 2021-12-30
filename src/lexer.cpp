@@ -1,51 +1,35 @@
-#include <vector>
-#include <string>
 #include <iostream>
-
 #include "lexer.hpp"
-#include "token.hpp"
 #include "smpl.hpp"
 
-Lexer::Lexer(std::string value) : value(value) {};
+using namespace SMPL;
+using namespace std;
 
-bool Lexer::isNumber()
-{ return this->current() >= '0' 
-      && this->current() <= '9' 
-      || this->current() == '.'; }
+Token *Lexer::next()
+{
+    skipSpaces();
 
-bool Lexer::isText()
-{ return this->current() >= 'a' 
-      && this->current() <= 'z' 
-      || this->current() >= 'A' 
-      && this->current() <= 'Z'; }
+    if (index >= code.length())
+        return new Token();
 
-char Lexer::current()
-{ return this->value[this->index]; }
+    if (isNumber()) return number();
+    if (isText())   return word();
 
-char Lexer::peek()
-{ return this->value[this->index++]; }
-
-void Lexer::skipWhitespaces()
-{ 
-    while (this->current() <= ' ')
-        this->index++; 
+    return single();
 }
 
 Token *Lexer::number()
 {
-    std::string buffer;
+    string buffer;
     bool isDouble = false;
 
-    while (this->isNumber())
+    while (isNumber())
     {
-        buffer += this->peek();
-        if (this->current() == '.')
-        {
-            if (isDouble)
-                throw new SMPL::UnexpectedToken(this->index, '.');
-            else 
-                isDouble = true;
-        }
+        if (current() == '.')
+            if (isDouble) fail();
+            else isDouble = true;
+
+        buffer += match();
     }
 
     return new Token(Token::Type::Number, buffer);
@@ -53,10 +37,10 @@ Token *Lexer::number()
 
 Token *Lexer::word()
 {
-    std::string buffer;
+    string buffer;
 
-    while (this->isText())
-        buffer += this->peek();
+    while (isText())
+        buffer += match();
 
     if (buffer == "define")
         return new Token(Token::Type::Keyword, buffer);
@@ -64,54 +48,46 @@ Token *Lexer::word()
     return new Token(Token::Type::Id, buffer);
 }
 
-Token *Lexer::singleChar()
+Token *Lexer::single()
 {
     Token::Type type;
 
-    switch (this->current())
+    switch (current())
     {
     case '+':
-    case '-':
-        type = Token::Type::AOperator;
-        break;
+    case '-': type = Token::Type::AOperator; break;
 
     case '*':
-    case '/':
-        type = Token::Type::MOperator;
-        break;
+    case '/': type = Token::Type::MOperator; break;
 
-    case '(':
-        type = Token::Type::OBracket;
-        break;
+    case '(': type = Token::Type::OBracket;  break;
+    case ')': type = Token::Type::CBracket;  break;
+    case '=': type = Token::Type::Equal;     break;
+    case ';': type = Token::Type::Semicolon; break;
 
-    case ')':
-        type = Token::Type::CBracket;
-        break;
-
-    case '=':
-        type = Token::Type::Equal;
-        break;
-
-    case ';':
-        type = Token::Type::Semicolon;
-        break;
-
-    default:
-        throw new SMPL::UnexpectedToken(this->index, this->current());
+    default: fail();
     }
 
-    return new Token(type, this->peek());
+    return new Token(type, match());
 }
 
-Token *Lexer::next()
-{
-    if (this->index >= this->value.length())
-        return new Token();
+void Lexer::skipSpaces()
+{ while (current() <= ' ' && index < code.length()) match(); }
 
-    this->skipWhitespaces();
+bool Lexer::isNumber()
+{ return isdigit(current()) || current() == '.'; }
 
-    if (this->isNumber()) return this->number();
-    if (this->isText())   return this->word();
-
-    return this->singleChar();
+bool Lexer::isText()
+{ 
+    return current() >= 'a' && current() <= 'z' 
+        || current() >= 'A' && current() <= 'Z';
 }
+
+char Lexer::current()
+{ return code[index]; }
+
+char Lexer::match()
+{ return code[index++]; }
+
+void Lexer::fail()
+{ throw new UnexpectedToken(index, current()); }

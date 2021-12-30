@@ -1,33 +1,28 @@
-#include <vector>
-#include <string>
-
 #include "token.hpp"
-
 #pragma once
 
 class Lexer
 {
+public:
+    Lexer(std::string code) : code(code) {};
+
+    Token *next();
+    std::string code;
+
+    size_t index = 0;
+
 private:
+    Token *single();
+    Token *number();
+    Token *word();
+
+    void skipSpaces();
+
     bool isNumber();
     bool isText();
 
     char current();
-    char previous();
-    char peek();
+    char match();
 
-    void skipWhitespaces();
-
-    Token *number();
-    Token *word();
-    Token *singleChar();
-
-    void unexpectedToken();
-
-public:
-    Lexer(std::string);
-
-    size_t index = 0;
-
-    Token *next();
-    std::string value;
+    void fail();
 };
