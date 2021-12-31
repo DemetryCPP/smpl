@@ -111,10 +111,8 @@ double Interpreter::call(Call *call)
     variables[argname] = arg;
     result = solve(func->value);
 
-    if (argOverlapGlobals)
-        variables[argname] = temp;
-    else
-        variables.erase(variables.find(argname));
+    if (argOverlapGlobals) variables[argname] = temp;
+    else variables.erase(variables.find(argname));
 
     return result;
 }
@@ -127,15 +125,14 @@ double Interpreter::value(Token *token)
 
 string Error::format()
 {
-    string result = "Error at " + to_string(line) + ":" + to_string(column) + ": ";
-    string token = "\"" + this->token + "\"";
+    auto result = "Error at " + to_string(line) + ":" + to_string(column) + ": ",
+         token = "\"" + this->token + "\"";
 
     switch (type)
     {
         case UnexpectedToken: return result + "Unexpected token " + token;
-        case IsNotAFunction:  return result + token + " is not a function"; 
-        case IsNotDefined:    return result + token + " is not defined";        
-
-        default: return "some errors..";
+        case IsNotAFunction:  return result + token + " is not a function";
+        case IsNotDefined:    return result + token + " is not defined";
+        default:              return "some errors...";
     }
 }

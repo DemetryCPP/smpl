@@ -59,6 +59,7 @@ Token *Lexer::word()
 Token *Lexer::single()
 {
     auto type = map<char, Token::Type>({
+        { '=', Assignment },
         { '+', AOperator },
         { '-', AOperator },
         { '*', MOperator },
@@ -66,7 +67,6 @@ Token *Lexer::single()
         { ';', Semicolon },
         { '(', OBracket },
         { ')', CBracket },
-        { '=', Equal },
     })[current()];
 
     if (type == None) fail();
@@ -90,31 +90,29 @@ void Lexer::lineComment()
 
 void Lexer::blockComment()
 {
-    match();
-    match();
+    match(); match();
     while (current() != '*' || following() != '/')
         match();
-    match();
-    match();
+    match(); match();
 }
 
 void Lexer::skipSpaces()
 { while (current() <= ' ' && index < code.length()) match(); }
 
-bool Lexer::isNumber()
+bool Lexer::isNumber() const
 { return isdigit(current()) || current() == '.'; }
 
-bool Lexer::isText()
+bool Lexer::isText() const
 { 
     return 'a' <= current() && current() <= 'z' 
         || 'A' <= current() && current() <= 'Z'
         || current() == '_' || current() == '$';
 }
 
-char Lexer::current()
+char Lexer::current() const
 { return code[index]; }
 
-char Lexer::following()
+char Lexer::following() const
 { return code[index + 1]; }
 
 char Lexer::match()
@@ -130,5 +128,5 @@ char Lexer::match()
     return code[index++];
 }
 
-void Lexer::fail()
+void Lexer::fail() const
 { throw new Error(UnexpectedToken, line, column, current()); }

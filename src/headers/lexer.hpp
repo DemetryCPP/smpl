@@ -9,13 +9,13 @@ public:
     {
         None,       // '\0'
 
+        Assignment, // '='
         AOperator,  // '+', '-' 
         MOperator,  // '*', '/'
         Semicolon,  // ';'
         OBracket,   // '('
         CBracket,   // ')'
         Keyword,    // 'define'
-        Equal,      // '='
         Number,     // \d+(\.\d+)?
         Id          // [a-zA-Z]+
     } type;
@@ -32,7 +32,7 @@ public:
     size_t line, column;
     std::string value;
 
-    void log();
+    void log() const;
 };
 
 class Lexer
@@ -56,12 +56,12 @@ private:
     void blockComment();
     void lineComment();
 
-    bool isNumber();
-    bool isText();
+    bool isNumber() const;
+    bool isText() const;
 
-    char following();
-    char current();
+    char following() const;
+    char current() const;
     char match();
 
-    void fail();
+    [[noreturn]] void fail() const;
 };

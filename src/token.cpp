@@ -1,7 +1,7 @@
 #include <iostream>
 #include "lexer.hpp"
 
-void Token::log()
+void Token::log() const
 {
     const std::string names[] { 
         "[ AOperator ]",
@@ -16,5 +16,5 @@ void Token::log()
         "[    Id     ]",
     };
 
-    std::cout << names[(int)type] << " " << this->value << std::endl;
+    std::cout << names[(int)type] << " " << value << std::endl;
 };

@@ -32,6 +32,6 @@ namespace AST
         void next();
 
         Token *current;
-        [[noreturn]] void fail();
+        [[noreturn]] void fail() const;
     };
 }

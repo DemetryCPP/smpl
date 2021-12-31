@@ -7,6 +7,7 @@ using namespace std;
 using namespace AST;
 
 using enum Token::Type;
+using enum Error::Type;
 
 Parser::Parser(Lexer *lex) : lex(lex) 
 {
@@ -41,9 +42,8 @@ Function *Parser::function()
     auto arg = match(Id)->value;
     match(")");
     match("=");
-    auto expr = this->expr();
 
-    return new Function(name, arg, expr);
+    return new Function(name, arg, expr());
 }
 
 Assign *Parser::assign(string id)
@@ -63,14 +63,14 @@ Call *Parser::call(Token *id)
 
 Expr *Parser::expr()
 {
-    vector<AST::Term *> terms;
+    vector<Term *> terms;
     vector<char> operators;
 
     terms.push_back(term());
 
-    while (current->type == Token::Type::AOperator)
+    while (current->type == AOperator)
     {
-        operators.push_back(match(Token::Type::AOperator)->value[0]);
+        operators.push_back(match(AOperator)->value[0]);
         terms.push_back(term());
     }
 
@@ -83,9 +83,9 @@ Term *Parser::term()
     vector<char> operators;
 
     facts.push_back(fact());
-    while (current->type == Token::Type::MOperator)
+    while (current->type == MOperator)
     {
-        operators.push_back(match(Token::Type::MOperator)->value[0]);
+        operators.push_back(match(MOperator)->value[0]);
         facts.push_back(fact());
     }
 
@@ -94,12 +94,12 @@ Term *Parser::term()
 
 Fact *Parser::fact()
 {
-    if (current->type == Token::Type::Number)
-        return new Literal(match(Token::Type::Number));
+    if (current->type == Number)
+        return new Literal(match(Number));
 
-    else if (current->type == Token::Type::Id)
+    else if (current->type == Id)
     {
-        auto id = match(Token::Type::Id);
+        auto id = match(Id);
 
         if (current->value == "(") 
             return call(id);
@@ -131,7 +131,7 @@ Token *Parser::match(Token::Type type)
 {
     if (current->type == type)
     {
-        Token *result = this->current;
+        auto result = current;
         next();
         return result;
     }
@@ -139,7 +139,7 @@ Token *Parser::match(Token::Type type)
     fail();
 }
 
-void Parser::match(std::string token)
+void Parser::match(string token)
 {
     if (current->value == token) next();
     else fail();
@@ -148,5 +148,5 @@ void Parser::match(std::string token)
 void Parser::next()
 { current = lex->next(); }
 
-[[noreturn]] void Parser::fail()
-{ throw new Error(Error::Type::UnexpectedToken, current->line, current->column, current->value); }
+[[noreturn]] void Parser::fail() const
+{ throw new Error(UnexpectedToken, current->line, current->column, current->value); }
