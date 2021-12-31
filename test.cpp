@@ -11,8 +11,13 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
+    if (argc == 1)
+        cout << "Error: no input file" << endl;
+
     string code, line;
-    ifstream in("test.smpl");
+    ifstream in(argv[1]);
+
+    if (!in) cout << "Error: cannot find file " << argv[1] << endl;
 
     getline(in, line);
     code = line;
