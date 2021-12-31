@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="g++"
+CC="g++-11"
 FLAGS="-Isrc/headers -o smpl -std=c++2a"
 FILES="src/lexer.cpp
        src/parser.cpp

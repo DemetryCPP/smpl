@@ -52,9 +52,14 @@ private:
 
     void skipSpaces();
 
+    void comments();
+    void blockComment();
+    void lineComment();
+
     bool isNumber();
     bool isText();
 
+    char following();
     char current();
     char match();
 

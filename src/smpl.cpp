@@ -83,7 +83,7 @@ template<class K, class V> bool includes(map<K, V> m, K key)
 
 double Interpreter::get(Token *name)
 {
-    if (!includes<string, double>(variables, name->value))
+    if (includes<string, double>(variables, name->value))
         return variables[name->value];
 
     throw new Error(IsNotDefined, name->line, name->column, name->value);
@@ -112,11 +112,9 @@ double Interpreter::call(Call *call)
     result = solve(func->value);
 
     if (argOverlapGlobals)
-    {
-        result = solve(func->value);
         variables[argname] = temp;
-    }
-    else variables.erase(variables.find(func->arg));
+    else
+        variables.erase(variables.find(argname));
 
     return result;
 }

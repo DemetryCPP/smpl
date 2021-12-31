@@ -11,6 +11,7 @@ using enum Error::Type;
 Token *Lexer::next()
 {
     skipSpaces();
+    comments();
 
     if (index >= code.length())
         return new Token(line, column);
@@ -73,6 +74,30 @@ Token *Lexer::single()
     return new Token(line, column, type, match());
 }
 
+void Lexer::comments()
+{
+    if (current() == '/' && following() == '/') lineComment();
+    else if (current() == '/' && following() == '*') blockComment();
+
+    skipSpaces();
+}
+
+void Lexer::lineComment()
+{
+    while (current() != '\n' && index < code.length())
+        match();
+}
+
+void Lexer::blockComment()
+{
+    match();
+    match();
+    while (current() != '*' || following() != '/')
+        match();
+    match();
+    match();
+}
+
 void Lexer::skipSpaces()
 { while (current() <= ' ' && index < code.length()) match(); }
 
@@ -88,6 +113,9 @@ bool Lexer::isText()
 
 char Lexer::current()
 { return code[index]; }
+
+char Lexer::following()
+{ return code[index + 1]; }
 
 char Lexer::match()
 {
