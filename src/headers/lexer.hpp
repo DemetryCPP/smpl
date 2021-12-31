@@ -20,10 +20,12 @@ public:
         Id          // [a-zA-Z]+
     } type;
 
-    Token(size_t line, size_t column, Type type, std::string value)
+    Token(size_t line, size_t column, Type type, std::string value) 
         : type(type), value(value), line(line), column(column) {};
+
     Token(size_t line, size_t column, Type type, char value)
         : Token(line, column, type, std::string(1, value)) {};
+
     Token(size_t line, size_t column)
         : Token(line, column, Token::Type::None, "") {};
 

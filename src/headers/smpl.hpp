@@ -3,6 +3,9 @@
 
 namespace SMPL
 {
+    using namespace std;
+    using namespace AST;
+
     class Error
     {
     public:
@@ -13,16 +16,16 @@ namespace SMPL
             IsNotDefined,
         } type;
 
-        Error(Type type, size_t line, size_t column, std::string token) 
+        Error(Type type, size_t line, size_t column, string token) 
             : line(line), column(column), token(token), type(type) {};
 
         Error(Type type, size_t line, size_t column, char token)
-            : Error(type, line, column, std::string(1, token)) {};
+            : Error(type, line, column, string(1, token)) {};
 
         size_t line, column;
-        std::string token;
+        string token;
 
-        std::string format();
+        string format();
     };
 
     class Interpreter
@@ -31,23 +34,23 @@ namespace SMPL
         using Func = double (*) (double);
 
         Interpreter() {};
-        Interpreter(std::map<std::string, Func> stdfuncs,
-                    std::map<std::string, double> variables)
+        Interpreter(map<string, Func> stdfuncs,
+                    map<string, double> variables)
             : stdfuncs(stdfuncs), variables(variables) {};
 
-        std::map<std::string, AST::Function *> functions;
-        std::map<std::string, double> variables;
-        std::map<std::string, Func> stdfuncs;
+        map<string, Function *> functions;
+        map<string, double> variables;
+        map<string, Func> stdfuncs;
 
-        void eval(std::string code);
+        void eval(string code);
 
     private:
         double get(Token *);
-        double call(AST::Call *);
+        double call(Call *);
 
-        double solve(AST::Expr *);
-        double solve(AST::Term *);
-        double solve(AST::Fact *);
+        double solve(Expr *);
+        double solve(Term *);
+        double solve(Fact *);
 
         double value(Token *);
     };

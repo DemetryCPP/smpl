@@ -6,11 +6,13 @@ using namespace SMPL;
 using namespace std;
 using namespace AST;
 
+using enum Token::Type;
+
 Parser::Parser(Lexer *lex) : lex(lex) 
 {
     next();
 
-    while (current->type != Token::Type::None)
+    while (current->type != None)
     {
         stmts.push_back(stmt());
         match(";");
@@ -22,7 +24,7 @@ Statement *Parser::stmt()
     if (current->value == "define") return function();
     else
     {
-        auto id = match(Token::Type::Id);
+        auto id = match(Id);
 
         if (current->value == "=")      return assign(id->value);
         else if (current->value == "(") return call(id);
@@ -34,9 +36,9 @@ Statement *Parser::stmt()
 Function *Parser::function()
 {
     match("define");
-    auto name = match(Token::Type::Id);
+    auto name = match(Id);
     match("(");
-    auto arg = match(Token::Type::Id)->value;
+    auto arg = match(Id)->value;
     match(")");
     match("=");
     auto expr = this->expr();
@@ -47,9 +49,7 @@ Function *Parser::function()
 Assign *Parser::assign(string id)
 {
     match("=");
-    auto expr = this->expr();
-
-    return new Assign(id, expr);
+    return new Assign(id, expr());
 }
 
 Call *Parser::call(Token *id)

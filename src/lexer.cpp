@@ -5,6 +5,8 @@
 
 using namespace SMPL;
 using namespace std;
+using enum Token::Type;
+using enum Error::Type;
 
 Token *Lexer::next()
 {
@@ -35,7 +37,7 @@ Token *Lexer::number()
         buffer += match();
     }
 
-    return new Token(line, column, Token::Type::Number, buffer);
+    return new Token(line, column, Number, buffer);
 }
 
 Token *Lexer::word()
@@ -48,25 +50,25 @@ Token *Lexer::word()
         buffer += match();
 
     if (buffer == "define")
-        return new Token(line, column, Token::Type::Keyword, buffer);
+        return new Token(line, column, Keyword, buffer);
 
-    return new Token(line, column, Token::Type::Id, buffer);
+    return new Token(line, column, Id, buffer);
 }
 
 Token *Lexer::single()
 {
     auto type = map<char, Token::Type>({
-        { '+', Token::Type::AOperator },
-        { '-', Token::Type::AOperator },
-        { '*', Token::Type::MOperator },
-        { '/', Token::Type::MOperator },
-        { ';', Token::Type::Semicolon },
-        { '(', Token::Type::OBracket },
-        { ')', Token::Type::CBracket },
-        { '=', Token::Type::Equal },
+        { '+', AOperator },
+        { '-', AOperator },
+        { '*', MOperator },
+        { '/', MOperator },
+        { ';', Semicolon },
+        { '(', OBracket },
+        { ')', CBracket },
+        { '=', Equal },
     })[current()];
 
-    if (type == Token::Type::None) fail();
+    if (type == None) fail();
 
     return new Token(line, column, type, match());
 }
@@ -79,8 +81,8 @@ bool Lexer::isNumber()
 
 bool Lexer::isText()
 { 
-    return current() >= 'a' && current() <= 'z' 
-        || current() >= 'A' && current() <= 'Z'
+    return 'a' <= current() && current() <= 'z' 
+        || 'A' <= current() && current() <= 'Z'
         || current() == '_' || current() == '$';
 }
 
@@ -101,4 +103,4 @@ char Lexer::match()
 }
 
 void Lexer::fail()
-{ throw new Error(Error::Type::UnexpectedToken, line, column, current()); }
+{ throw new Error(UnexpectedToken, line, column, current()); }

@@ -3,6 +3,8 @@
 
 namespace AST
 {
+    using namespace std;
+
     struct Fact
     {
         enum class Type
@@ -14,14 +16,14 @@ namespace AST
 
     struct Term
     {
-        std::vector<Fact *> nodes;
-        std::vector<char> operators;
+        vector<Fact *> nodes;
+        vector<char> operators;
     };
 
     struct Expr
     {
-        std::vector<Term *> nodes;
-        std::vector<char> operators;
+        vector<Term *> nodes;
+        vector<char> operators;
     };
 
     struct Statement
@@ -32,22 +34,22 @@ namespace AST
 
     struct Function : Statement
     {
-        Function(Token *name, std::string arg, Expr *value)
+        Function(Token *name, string arg, Expr *value)
             : Statement{Statement::Type::Function}
             , name(name), arg(arg), value(value) {};
 
-        std::string arg;
+        string arg;
         Token *name;
         Expr *value;
     };
 
     struct Assign : Statement
     {
-        Assign(std::string name, Expr *value)
+        Assign(string name, Expr *value)
             : Statement{Statement::Type::Assign}
             , name(name), value(value) {};
 
-        std::string name;
+        string name;
         Expr *value;
     };
 

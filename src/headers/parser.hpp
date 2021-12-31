@@ -3,19 +3,21 @@
 
 namespace AST
 {
+    using namespace std;
+
     class Parser
     {
     public:
         Parser(Lexer *lex);
 
-        std::vector<Statement *> stmts;
+        vector<Statement *> stmts;
         Lexer *lex;
 
     private:
         Statement *stmt();
 
         Function *function();
-        Assign   *assign(std::string);
+        Assign   *assign(string);
         Call     *call(Token *);
 
         Expr *expr();
@@ -26,7 +28,7 @@ namespace AST
         Unary    *unary();
 
         Token *match(Token::Type);
-        void match(std::string);
+        void match(string);
         void next();
 
         Token *current;

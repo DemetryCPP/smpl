@@ -5,6 +5,10 @@
 using namespace SMPL;
 using namespace AST;
 using namespace std;
+using enum Error::Type;
+
+using SType = Statement::Type;
+using FType = Fact::Type;
 
 void Interpreter::eval(string code)
 {
@@ -14,16 +18,16 @@ void Interpreter::eval(string code)
     {
         switch (stmt->type)
         {
-        case Statement::Type::Assign: {
+        case SType::Assign: {
             auto assign = static_cast<Assign *>(stmt);
             variables[assign->name] = solve(assign->value);
         } break;
 
-        case Statement::Type::Call: {
+        case SType::Call: {
             call(static_cast<Call *>(stmt));
         } break;
     
-        case Statement::Type::Function: {
+        case SType::Function: {
             auto function = static_cast<Function *>(stmt);
             functions[function->name->value] = function;
         } break;
@@ -67,19 +71,22 @@ double Interpreter::solve(Fact *fact)
 {
     switch (fact->type)
     {
-        case Fact::Type::Literal:  return  value(static_cast<Literal  *>(fact)->token);
-        case Fact::Type::Brackets: return  solve(static_cast<Brackets *>(fact)->expr);
-        case Fact::Type::Unary:    return -solve(static_cast<Unary    *>(fact)->fact);
-        case Fact::Type::Call:     return  call( static_cast<Call     *>(fact));
+        case FType::Brackets: return  solve(static_cast<Brackets *>(fact)->expr);
+        case FType::Literal:  return  value(static_cast<Literal  *>(fact)->token);
+        case FType::Unary:    return -solve(static_cast<Unary    *>(fact)->fact);
+        case FType::Call:     return   call(static_cast<Call     *>(fact));
     }
 }
 
+template<class K, class V> bool includes(map<K, V> m, K key)
+{ return m.find(key) != m.end(); }
+
 double Interpreter::get(Token *name)
 {
-    if (variables.find(name->value) != variables.end())
+    if (!includes<string, double>(variables, name->value))
         return variables[name->value];
 
-    throw new Error(Error::Type::IsNotDefined, name->line, name->column, name->value);
+    throw new Error(IsNotDefined, name->line, name->column, name->value);
 }
 
 double Interpreter::call(Call *call)
@@ -87,39 +94,37 @@ double Interpreter::call(Call *call)
     auto name = call->name;
     auto arg = solve(call->arg);
 
-    if (stdfuncs.find(name->value) != stdfuncs.end())
+    if (includes<string, Func>(stdfuncs, name->value))
         return stdfuncs[name->value](arg);
 
-    if (functions.find(name->value) == functions.end())
-        throw new Error(Error::Type::IsNotAFunction, name->line, name->column, name->value);
+    if (!includes<string, Function *>(functions, name->value))
+        throw new Error(IsNotAFunction, name->line, name->column, name->value);
 
+    auto argOverlapGlobals = includes<string, double>(variables, name->value);
     auto func = functions[name->value];
-    double result;
+    auto argname = func->arg;
+    double result, temp;
 
-    if (variables.find(func->arg) == variables.end())
+    if (argOverlapGlobals)
+        temp = variables[argname];
+
+    variables[argname] = arg;
+    result = solve(func->value);
+
+    if (argOverlapGlobals)
     {
-        variables[func->arg] = arg;
         result = solve(func->value);
-        variables.erase(variables.find(func->arg));
+        variables[argname] = temp;
     }
-    else
-    {
-        auto lastValue = variables[func->arg];
-        variables[func->arg] = arg;
-        result = solve(func->value);
-        variables[func->arg] = lastValue;
-    }
+    else variables.erase(variables.find(func->arg));
 
     return result;
 }
 
 double Interpreter::value(Token *token)
 {
-    if (token->type == Token::Type::Number)
-        return stod(token->value);
-
-    if (token->type == Token::Type::Id)
-        return get(token);
+    if (token->type == Token::Type::Number) return stod(token->value);
+    if (token->type == Token::Type::Id)     return get(token);
 }
 
 string Error::format()
@@ -129,9 +134,9 @@ string Error::format()
 
     switch (type)
     {
-        case Type::UnexpectedToken: return result + "Unexpected token " + token;
-        case Type::IsNotAFunction:  return result + token + " is not a function"; 
-        case Type::IsNotDefined:    return result + token + " is not defined";        
+        case UnexpectedToken: return result + "Unexpected token " + token;
+        case IsNotAFunction:  return result + token + " is not a function"; 
+        case IsNotDefined:    return result + token + " is not defined";        
 
         default: return "some errors..";
     }

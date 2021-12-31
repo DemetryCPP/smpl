@@ -4,16 +4,16 @@
 void Token::log()
 {
     const std::string names[] { 
-        "[ AOPER ]",
-        "[ MOPER ]",
-        "[ SEMIC ]",
-        "[ OBRCK ]",
-        "[ CBRCK ]",
-        "[ KWORD ]",
-        "[ EQUAL ]",
-        "[  NUM  ]",
-        "[  NUL  ]",
-        "[  VAR  ]",
+        "[ AOperator ]",
+        "[ MOperator ]",
+        "[ Semicolon ]",
+        "[ OpBracket ]",
+        "[ ClBracket ]",
+        "[  KeyWord  ]",
+        "[  Assign   ]",
+        "[  Number   ]",
+        "[   None    ]",
+        "[    Id     ]",
     };
 
     std::cout << names[(int)type] << " " << this->value << std::endl;
