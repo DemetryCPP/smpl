@@ -10,7 +10,7 @@ Token *Lexer::next()
     skipSpaces();
 
     if (index >= code.length())
-        return new Token();
+        return new Token(line, column);
 
     if (isNumber()) return number();
     if (isText())   return word();
@@ -22,6 +22,8 @@ Token *Lexer::number()
 {
     string buffer;
     bool isDouble = false;
+    buffer += match();
+    size_t column = this->column;
 
     while (isNumber())
     {
@@ -32,20 +34,22 @@ Token *Lexer::number()
         buffer += match();
     }
 
-    return new Token(Token::Type::Number, buffer);
+    return new Token(line, column, Token::Type::Number, buffer);
 }
 
 Token *Lexer::word()
 {
     string buffer;
+    buffer += match();
+    size_t column = this->column;
 
     while (isText())
         buffer += match();
 
     if (buffer == "define")
-        return new Token(Token::Type::Keyword, buffer);
+        return new Token(line, column, Token::Type::Keyword, buffer);
 
-    return new Token(Token::Type::Id, buffer);
+    return new Token(line, column, Token::Type::Id, buffer);
 }
 
 Token *Lexer::single()
@@ -68,7 +72,7 @@ Token *Lexer::single()
     default: fail();
     }
 
-    return new Token(type, match());
+    return new Token(line, column, type, match());
 }
 
 void Lexer::skipSpaces()
@@ -87,7 +91,17 @@ char Lexer::current()
 { return code[index]; }
 
 char Lexer::match()
-{ return code[index++]; }
+{
+    column++;
+
+    if (current() == '\n')
+    {
+        line++;
+        column = 0;
+    }
+
+    return code[index++];
+}
 
 void Lexer::fail()
-{ throw new UnexpectedToken(index, current()); }
+{ throw new Error(Error::Type::UnexpectedToken, line, column, current()); }

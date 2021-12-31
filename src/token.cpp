@@ -1,10 +1,5 @@
-#include <vector>
-#include <string>
 #include <iostream>
-
 #include "lexer.hpp"
-#include "token.hpp"
-#include "smpl.hpp"
 
 void Token::log()
 {
@@ -21,5 +16,5 @@ void Token::log()
         "[  VAR  ]",
     };
 
-    std::cout << names[(int)this->type] << " " << this->value << std::endl;
+    std::cout << names[(int)type] << " " << this->value << std::endl;
 };

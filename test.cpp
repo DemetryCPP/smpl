@@ -12,6 +12,9 @@ int main(int argc, char const *argv[])
     std::string code, line;
     std::ifstream in("test.smpl");
 
+    getline(in, line);
+    code = line;
+
     while (getline(in, line))
         code += "\n" + line;
 
@@ -19,7 +22,10 @@ int main(int argc, char const *argv[])
 
     auto env = new SMPL::Env;
 
-    SMPL::eval(code, env);
+    try
+    { SMPL::eval(code, env); }
+    catch (SMPL::Error *e) 
+    { std::cout << e->format() << std::endl; }
 
     return 0;
 }

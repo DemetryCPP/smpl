@@ -22,9 +22,9 @@ Statement *Parser::stmt()
     if (current->value == "define") return function();
     else
     {
-        string id = match(Token::Type::Id)->value;
+        auto id = match(Token::Type::Id);
 
-        if (current->value == "=")      return assign(id);
+        if (current->value == "=")      return assign(id->value);
         else if (current->value == "(") return call(id);
     }
 
@@ -34,7 +34,7 @@ Statement *Parser::stmt()
 Function *Parser::function()
 {
     match("define");
-    auto name = match(Token::Type::Id)->value;
+    auto name = match(Token::Type::Id);
     match("(");
     auto arg = match(Token::Type::Id)->value;
     match(")");
@@ -52,7 +52,7 @@ Assign *Parser::assign(string id)
     return new Assign(id, expr);
 }
 
-Call *Parser::call(string id)
+Call *Parser::call(Token *id)
 {
     match("(");
     auto expr = this->expr();
@@ -99,10 +99,10 @@ Fact *Parser::fact()
 
     else if (current->type == Token::Type::Id)
     {
-        Token *id = match(Token::Type::Id);
+        auto id = match(Token::Type::Id);
 
         if (current->value == "(") 
-            return call(id->value);
+            return call(id);
         
         return new Literal(id);
     }
@@ -124,7 +124,7 @@ Brackets *Parser::brackets()
 Unary *Parser::unary()
 {
     match("-");
-    return new Unary('-', fact());
+    return new Unary(fact());
 }
 
 Token *Parser::match(Token::Type type)
@@ -142,11 +142,11 @@ Token *Parser::match(Token::Type type)
 void Parser::match(std::string token)
 {
     if (current->value == token) next();
-    else throw new SMPL::UnexpectedToken(lex->index, current->value);
+    else fail();
 }
 
 void Parser::next()
 { current = lex->next(); }
 
 [[noreturn]] void Parser::fail()
-{ throw new UnexpectedToken(lex->index, current->value); }
+{ throw new Error(Error::Type::UnexpectedToken, current->line, current->column, current->value); }

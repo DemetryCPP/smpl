@@ -1,5 +1,3 @@
-#include <vector>
-#include "lexer.hpp"
 #include "nodes.hpp"
 #pragma once
 
@@ -18,7 +16,7 @@ namespace AST
 
         Function *function();
         Assign   *assign(std::string);
-        Call     *call(std::string);
+        Call     *call(Token *);
 
         Expr *expr();
         Term *term();

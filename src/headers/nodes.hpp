@@ -1,11 +1,10 @@
-#include "token.hpp"
+#include "lexer.hpp"
 #pragma once
 
 namespace AST
 {
-    class Fact
+    struct Fact
     {
-    public:
         enum class Type
         {
             Brackets, Call,
@@ -15,9 +14,8 @@ namespace AST
         Fact(Type type) : type(type) {};
     };
 
-    class Term
+    struct Term
     {
-    public:
         Term(std::vector<Fact *> nodes, std::vector<char> operators)
             : nodes(nodes), operators(operators) {};
 
@@ -25,9 +23,8 @@ namespace AST
         std::vector<char> operators;
     };
 
-    class Expr
+    struct Expr
     {
-    public:
         Expr(std::vector<Term *> nodes, std::vector<char> operators)
             : nodes(nodes), operators(operators) {};
 
@@ -35,31 +32,27 @@ namespace AST
         std::vector<char> operators;
     };
 
-    class Statement
+    struct Statement
     {
-    public:
         enum class Type
         { Function, Assign, Call } type;
 
         Statement(Type type) : type(type) {};
     };
 
-    class Function : public Statement
+    struct Function : Statement
     {
-    public:
-        Function(std::string name, std::string arg, Expr *value)
+        Function(Token *name, std::string arg, Expr *value)
             : Statement(Statement::Type::Function)
             , name(name), arg(arg), value(value) {};
 
-        std::string name;
         std::string arg;
-
+        Token *name;
         Expr *value;
     };
 
-    class Assign : public Statement
+    struct Assign : Statement
     {
-    public: 
         Assign(std::string name, Expr *value)
             : Statement(Statement::Type::Assign)
             , name(name), value(value) {};
@@ -68,21 +61,19 @@ namespace AST
         Expr *value;
     };
 
-    class Call : public Fact, public Statement
+    struct Call : Fact, Statement
     {
-    public:
-        Call(std::string name, Expr *expr)
+        Call(Token *name, Expr *arg)
             : Statement(Statement::Type::Call)
             , Fact(Fact::Type::Call)
-            , name(name), expr(expr) {};
+            , name(name), arg(arg) {};
 
-        std::string name;
-        Expr *expr;
+        Token *name;
+        Expr *arg;
     };
 
-    class Literal : public Fact
+    struct Literal : Fact
     {
-    public:
         Literal(Token *token)
             : Fact(Fact::Type::Literal)
             , token(token) {};
@@ -90,20 +81,17 @@ namespace AST
         Token *token;
     };
 
-    class Unary : public Fact
+    struct Unary : Fact
     {
-    public:
-        Unary(char oper, Fact *fact)
+        Unary(Fact *fact)
             : Fact(Fact::Type::Unary)
-            , oper(oper), fact(fact) {};
+            , fact(fact) {};
 
-        char oper;
         Fact *fact;
     };
 
-    class Brackets : public Fact
+    struct Brackets : Fact
     {
-    public:
         Brackets(Expr *expr)
             : Fact(Fact::Type::Brackets)
             , expr(expr) {};

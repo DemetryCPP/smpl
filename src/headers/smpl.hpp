@@ -1,31 +1,28 @@
-#include <stdexcept>
-#include <string>
 #include <map>
-
 #include "nodes.hpp"
 
 namespace SMPL
 {
-    class UnexpectedToken
+    class Error
     {
     public:
-        UnexpectedToken(size_t index, std::string token)
-            : index(index), token(token) {};
-        UnexpectedToken(size_t index, char token)
-            : index(index), token(std::string(1, token)) {};
+        enum class Type
+        {
+            UnexpectedToken,
+            IsNotAFunction,
+            IsNotDefined,
+        } type;
 
-        size_t index;
+        Error(Type type, size_t line, size_t column, std::string token) 
+            : line(line), column(column), token(token), type(type) {};
+
+        Error(Type type, size_t line, size_t column, char token)
+            : Error(type, line, column, std::string(1, token)) {};
+
+        size_t line, column;
         std::string token;
-    };
 
-    class IsNotDefined
-    {
-    public:
-        IsNotDefined(size_t index, std::string name)
-            : index(index), name(name) {};
-
-        size_t index;
-        std::string name;
+        std::string format();
     };
 
     class Env
@@ -39,7 +36,7 @@ namespace SMPL
         std::map<std::string, stdFunc_t> stdFuncs;
         std::map<std::string, double> variables;
 
-        AST::Function *getFunction(std::string name);
+        AST::Function *getFunction(Token *name);
     };
 
     class Interpreter
@@ -55,6 +52,7 @@ namespace SMPL
         double solveFact(AST::Fact *);
 
         double call(AST::Call *);
+        double get(Token *);
 
         Env *env;
     };

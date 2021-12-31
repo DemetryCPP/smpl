@@ -1,5 +1,36 @@
-#include "token.hpp"
+#include <string>
+#include <vector>
 #pragma once
+
+class Token
+{
+public:
+    enum class Type
+    {
+        AOperator,  // '+', '-' 
+        MOperator,  // '*', '/'
+        Semicolon,  // ';'
+        OBracket,   // '('
+        CBracket,   // ')'
+        Keyword,    // 'define'
+        Equal,      // '='
+        Number,     // \d+(\.\d+)?
+        Null,       // '\0'
+        Id          // [a-zA-Z]+
+    } type;
+
+    Token(size_t line, size_t column, Type type, std::string value)
+        : type(type), value(value), line(line), column(column) {};
+    Token(size_t line, size_t column, Type type, char value)
+        : Token(line, column, type, std::string(1, value)) {};
+    Token(size_t line, size_t column)
+        : Token(line, column, Token::Type::Null, "") {};
+
+    size_t line, column;
+    std::string value;
+
+    void log();
+};
 
 class Lexer
 {
@@ -9,7 +40,7 @@ public:
     Token *next();
     std::string code;
 
-    size_t index = 0;
+    size_t index = 0, line = 1, column = 0;
 
 private:
     Token *single();
