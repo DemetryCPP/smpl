@@ -7,6 +7,8 @@ class Token
 public:
     enum class Type
     {
+        None,       // '\0'
+
         AOperator,  // '+', '-' 
         MOperator,  // '*', '/'
         Semicolon,  // ';'
@@ -15,7 +17,6 @@ public:
         Keyword,    // 'define'
         Equal,      // '='
         Number,     // \d+(\.\d+)?
-        Null,       // '\0'
         Id          // [a-zA-Z]+
     } type;
 
@@ -24,7 +25,7 @@ public:
     Token(size_t line, size_t column, Type type, char value)
         : Token(line, column, type, std::string(1, value)) {};
     Token(size_t line, size_t column)
-        : Token(line, column, Token::Type::Null, "") {};
+        : Token(line, column, Token::Type::None, "") {};
 
     size_t line, column;
     std::string value;
@@ -40,7 +41,7 @@ public:
     Token *next();
     std::string code;
 
-    size_t index = 0, line = 1, column = 0;
+    size_t index = 0, line = 1, column = 1;
 
 private:
     Token *single();

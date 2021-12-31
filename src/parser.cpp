@@ -10,7 +10,7 @@ Parser::Parser(Lexer *lex) : lex(lex)
 {
     next();
 
-    while (current->type != Token::Type::Null)
+    while (current->type != Token::Type::None)
     {
         stmts.push_back(stmt());
         match(";");
@@ -74,7 +74,7 @@ Expr *Parser::expr()
         terms.push_back(term());
     }
 
-    return new Expr(terms, operators);
+    return new Expr{terms, operators};
 }
 
 Term *Parser::term()
@@ -89,7 +89,7 @@ Term *Parser::term()
         facts.push_back(fact());
     }
 
-    return new Term(facts, operators);
+    return new Term{facts, operators};
 }
 
 Fact *Parser::fact()

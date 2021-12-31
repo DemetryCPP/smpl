@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CC="g++"
-FLAGS="-Isrc/headers -o smpl"
+FLAGS="-Isrc/headers -o smpl -std=c++17"
 FILES="src/lexer.cpp
        src/parser.cpp
        src/smpl.cpp

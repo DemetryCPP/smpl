@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include "lexer.hpp"
 #include "smpl.hpp"
 
@@ -22,8 +23,8 @@ Token *Lexer::number()
 {
     string buffer;
     bool isDouble = false;
-    buffer += match();
     size_t column = this->column;
+    buffer += match();
 
     while (isNumber())
     {
@@ -40,10 +41,10 @@ Token *Lexer::number()
 Token *Lexer::word()
 {
     string buffer;
-    buffer += match();
     size_t column = this->column;
+    buffer += match();
 
-    while (isText())
+    while (isText() || isdigit(current()))
         buffer += match();
 
     if (buffer == "define")
@@ -54,23 +55,18 @@ Token *Lexer::word()
 
 Token *Lexer::single()
 {
-    Token::Type type;
+    auto type = map<char, Token::Type>({
+        { '+', Token::Type::AOperator },
+        { '-', Token::Type::AOperator },
+        { '*', Token::Type::MOperator },
+        { '/', Token::Type::MOperator },
+        { ';', Token::Type::Semicolon },
+        { '(', Token::Type::OBracket },
+        { ')', Token::Type::CBracket },
+        { '=', Token::Type::Equal },
+    })[current()];
 
-    switch (current())
-    {
-    case '+':
-    case '-': type = Token::Type::AOperator; break;
-
-    case '*':
-    case '/': type = Token::Type::MOperator; break;
-
-    case '(': type = Token::Type::OBracket;  break;
-    case ')': type = Token::Type::CBracket;  break;
-    case '=': type = Token::Type::Equal;     break;
-    case ';': type = Token::Type::Semicolon; break;
-
-    default: fail();
-    }
+    if (type == Token::Type::None) fail();
 
     return new Token(line, column, type, match());
 }
@@ -84,7 +80,8 @@ bool Lexer::isNumber()
 bool Lexer::isText()
 { 
     return current() >= 'a' && current() <= 'z' 
-        || current() >= 'A' && current() <= 'Z';
+        || current() >= 'A' && current() <= 'Z'
+        || current() == '_' || current() == '$';
 }
 
 char Lexer::current()
@@ -97,7 +94,7 @@ char Lexer::match()
     if (current() == '\n')
     {
         line++;
-        column = 0;
+        column = 1;
     }
 
     return code[index++];

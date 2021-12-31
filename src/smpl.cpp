@@ -138,8 +138,8 @@ string Error::format()
     switch (type)
     {
         case Type::UnexpectedToken: return result + "Unexpected token " + token;
-        case Type::IsNotAFunction:  return result + token + "is not a function"; 
-        case Type::IsNotDefined:    return result + token + "is not defined";        
+        case Type::IsNotAFunction:  return result + token + " is not a function"; 
+        case Type::IsNotDefined:    return result + token + " is not defined";        
 
         default: return "some errors..";
     }
