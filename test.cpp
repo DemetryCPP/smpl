@@ -3,14 +3,16 @@
 #include <iostream>
 #include <fstream>
 
-#include "lexer.hpp"
 #include "parser.hpp"
 #include "smpl.hpp"
 
+using namespace SMPL;
+using namespace std;
+
 int main(int argc, char const *argv[])
 {
-    std::string code, line;
-    std::ifstream in("test.smpl");
+    string code, line;
+    ifstream in("test.smpl");
 
     getline(in, line);
     code = line;
@@ -20,12 +22,15 @@ int main(int argc, char const *argv[])
 
     in.close();
 
-    auto env = new SMPL::Env;
+    auto interpreter = new Interpreter();
+    interpreter->stdfuncs["print"] = [](double x) {
+        cout << x << endl; return x;
+    };
 
     try
-    { SMPL::eval(code, env); }
-    catch (SMPL::Error *e) 
-    { std::cout << e->format() << std::endl; }
+    { interpreter->eval(code); }
+    catch (Error *e) 
+    { cout << e->format() << endl; }
 
     return 0;
 }

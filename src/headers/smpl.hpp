@@ -25,37 +25,30 @@ namespace SMPL
         std::string format();
     };
 
-    class Env
-    {
-    public:
-        Env() {};
-
-        using stdFunc_t = double (*)(double a);
-
-        std::vector<AST::Function *> functions;
-        std::map<std::string, stdFunc_t> stdFuncs;
-        std::map<std::string, double> variables;
-
-        AST::Function *getFunction(Token *name);
-    };
-
     class Interpreter
     {
     public:
-        Interpreter(Env *env) : env(env) {};
+        using Func = double (*) (double);
 
-        void processAssign(AST::Assign *);
-        void processFunction(AST::Function *);
+        Interpreter() {};
+        Interpreter(std::map<std::string, Func> stdfuncs,
+                    std::map<std::string, double> variables)
+            : stdfuncs(stdfuncs), variables(variables) {};
 
-        double solveExpr(AST::Expr *);
-        double solveTerm(AST::Term *);
-        double solveFact(AST::Fact *);
+        std::map<std::string, AST::Function *> functions;
+        std::map<std::string, double> variables;
+        std::map<std::string, Func> stdfuncs;
 
-        double call(AST::Call *);
+        void eval(std::string code);
+
+    private:
         double get(Token *);
+        double call(AST::Call *);
 
-        Env *env;
+        double solve(AST::Expr *);
+        double solve(AST::Term *);
+        double solve(AST::Fact *);
+
+        double value(Token *);
     };
-
-    void eval(std::string code, Env *env);
 }
