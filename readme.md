@@ -1,12 +1,16 @@
 # What is SMPL
 SMPL is mini programming language. Repository contains his interpeter.
 
-# Compiling
+# Compiling and using
 ```sh
 chmod +x compile.sh
 ./compile.sh test.cpp
 ```
 Warning: required 11 version of g++.
+
+```sh
+./smpl <filename>
+```
 
 # Syntax
 

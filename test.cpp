@@ -12,7 +12,10 @@ using namespace std;
 int main(int argc, char const *argv[])
 {
     if (argc == 1)
+    {
         cout << "Error: no input file" << endl;
+        return 1;
+    }
 
     string code, line;
     ifstream in(argv[1]);
