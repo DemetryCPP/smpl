@@ -42,3 +42,15 @@ And call `eval` method with code:
 ```cpp
 interpreter->eval(yourcode);
 ```
+
+# Catch errors
+Interpreter throws `SMPL::Error *`.
+He have type:
+
+`SMPL::Error::Type::UnexpectedToken` - unexpected token.
+
+`SMPL::Error::Type::IsNotAFunction` - environment does not have function, with this name (e->token - her name).
+
+`SMPL::Error::Type::IsNotDefined` - environment does not have variable (e->token - her name).
+
+You can use standart method `SMPL::Error::format()` for get error message.
