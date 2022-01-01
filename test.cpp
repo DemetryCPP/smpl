@@ -28,9 +28,8 @@ int main(int argc, char const *argv[])
     in.close();
 
     auto interpreter = new Interpreter();
-    interpreter->stdfuncs["print"] = [](double x) {
-        cout << x << endl; return x;
-    };
+    interpreter->stdfuncs["print"] = [](double x) { cout << x << endl; return x; };
+    interpreter->stdfuncs["input"] = [](double x) { cin >> x; return x; };
 
     try
     { interpreter->eval(code); }
