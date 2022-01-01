@@ -5,7 +5,9 @@
 using namespace SMPL;
 using namespace AST;
 using namespace std;
+
 using enum Error::Type;
+using enum Token::Type;
 
 using SType = Statement::Type;
 using FType = Fact::Type;
@@ -77,10 +79,10 @@ double Interpreter::solve(Fact *fact)
 {
     switch (fact->type)
     {
-        case FType::Brackets: return  solve(static_cast<Brackets *>(fact)->expr);
-        case FType::Literal:  return  value(static_cast<Literal  *>(fact)->token);
-        case FType::Unary:    return -solve(static_cast<Unary    *>(fact)->fact);
-        case FType::Call:     return   call(static_cast<Call     *>(fact));
+        case FType::Brackets: return  solve(fact->as<Brackets>()->expr);
+        case FType::Literal:  return  value(fact->as<Literal >()->token);
+        case FType::Unary:    return -solve(fact->as<Unary   >()->fact);
+        case FType::Call:     return   call(fact->as<Call    >());
     }
 }
 
@@ -108,9 +110,6 @@ double Interpreter::call(Call *call)
     if (includes<string, Func>(stdfuncs, name->value))
         return stdfuncs[name->value](arg);
 
-    if (!includes<string, Function *>(functions, name->value))
-        throw new Error(IsNotAFunction, name->line, name->column, name->value);
-
     auto func = functions[name->value];
     auto argname = func->arg;
     auto argOverlapGlobals = includes<string, double>(variables, argname);
@@ -130,8 +129,8 @@ double Interpreter::call(Call *call)
 
 double Interpreter::value(Token *token)
 {
-    if (token->type == Token::Type::Number) return stod(token->value);
-    if (token->type == Token::Type::Id)     return get(token);
+    if (token == Number) return stod(token->value);
+    if (token == Id)     return get(token);
 }
 
 void Interpreter::checkSemantic(vector<Statement *> stmts)
@@ -185,12 +184,12 @@ void Interpreter::checkFactSemantic(Fact *f)
     switch (f->type)
     {
     case FType::Brackets:
-        checkExprSemantic(static_cast<Brackets *>(f)->expr);
+        checkExprSemantic(f->as<Brackets>()->expr);
         break;
     
     case FType::Literal: {
-        auto literal = static_cast<Literal *>(f)->token;
-        if (literal->type == Token::Type::Id)
+        auto literal = f->as<Literal>()->token;
+        if (literal->type == Id)
             if (!includes(definedVariables, literal->value) && !includes(variables, literal->value))
                 errors.push_back(new Error(IsNotDefined, literal->line, literal->column, literal->value));
     } break;

@@ -34,6 +34,9 @@ public:
     std::string value;
 
     void log() const;
+
+    friend bool operator==(Token *, Type);
+    friend bool operator==(Token *, std::string);
 };
 
 class Lexer

@@ -12,6 +12,8 @@ namespace AST
             Brackets, Call,
             Literal, Unary,
         } type;
+
+        template<class T> T *as();
     };
 
     struct Term
@@ -30,6 +32,8 @@ namespace AST
     {
         enum class Type
         { Function, Assign, Call } type;
+
+        template<class T> T *as();
     };
 
     struct Function : Statement

@@ -13,7 +13,7 @@ Parser::Parser(Lexer *lex) : lex(lex)
 {
     next();
 
-    while (current->type != None)
+    while (current != None)
     {
         try
         { 
@@ -73,7 +73,7 @@ Expr *Parser::expr()
 
     terms.push_back(term());
 
-    while (current->type == AOperator)
+    while (current == AOperator)
     {
         operators.push_back(match(AOperator)->value[0]);
         terms.push_back(term());
@@ -88,7 +88,7 @@ Term *Parser::term()
     vector<char> operators;
 
     facts.push_back(fact());
-    while (current->type == MOperator)
+    while (current == MOperator)
     {
         operators.push_back(match(MOperator)->value[0]);
         facts.push_back(fact());
@@ -99,10 +99,10 @@ Term *Parser::term()
 
 Fact *Parser::fact()
 {
-    if (current->type == Number)
+    if (current == Number)
         return new Literal(match(Number));
 
-    else if (current->type == Id)
+    else if (current == Id)
     {
         auto id = match(Id);
 
@@ -134,7 +134,7 @@ Unary *Parser::unary()
 
 Token *Parser::match(Token::Type type)
 {
-    if (current->type == type)
+    if (current == type)
     {
         auto result = current;
         next();
@@ -157,7 +157,7 @@ void Parser::fail()
 {
     auto e = new Error(UnexpectedToken, current->line, current->column, current->value);
 
-    while (current->type != Semicolon) next();
+    while (current != Semicolon) next();
     match(";");
 
     throw e;

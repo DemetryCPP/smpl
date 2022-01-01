@@ -1,8 +1,9 @@
 #include <iostream>
-#include "lexer.hpp"
+#include "nodes.hpp"
 #include "error.hpp"
 
 using namespace std;
+using namespace AST;
 using enum Error::Type;
 
 void Token::log() const
@@ -36,3 +37,15 @@ string Error::format()
         default:              return "some errors...";
     }
 }
+
+bool operator==(Token *token, Token::Type type)
+{ return token->type == type; }
+
+bool operator==(Token *token, std::string value)
+{ return token->value == value; }
+
+template<class T> T *Statement::as()
+{ return static_cast<T *>(this); }
+
+template<class T> T *Fact::as()
+{ return static_cast<T *>(this); }

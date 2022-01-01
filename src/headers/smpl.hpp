@@ -23,7 +23,6 @@ namespace SMPL
 
         void eval(string code);
 
-
     private:
         vector<string> definedFunctions;
         vector<string> definedVariables;
