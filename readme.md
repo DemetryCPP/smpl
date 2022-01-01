@@ -55,13 +55,13 @@ interpreter->eval(yourcode);
 ```
 
 # Catch errors
-Interpreter throws `SMPL::Error *`.
-He have type:
+Interpreter throws `vector<Error *>`.
+they have type (`Error::Type type`):
 
-`SMPL::Error::Type::UnexpectedToken` - unexpected token.
+`Error::Type::UnexpectedToken` - unexpected token.
 
-`SMPL::Error::Type::IsNotAFunction` - environment does not have function, with this name (e->token - her name).
+`Error::Type::IsNotAFunction` - environment does not have function, with this name (e->token - her name).
 
-`SMPL::Error::Type::IsNotDefined` - environment does not have variable (e->token - her name).
+`Error::Type::IsNotDefined` - environment does not have variable (e->token - her name).
 
 You can use standart method `SMPL::Error::format()` for get error message.
