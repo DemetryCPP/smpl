@@ -1,10 +1,7 @@
-#include <iostream>
-#include <map>
-#include "lexer.hpp"
 #include "smpl.hpp"
 
 using namespace SMPL;
-using namespace std;
+
 using enum Token::Type;
 using enum Error::Type;
 
@@ -68,8 +65,6 @@ Token *Lexer::single()
         { '(', OBracket },
         { ')', CBracket },
     })[current()];
-
-    if (type == None) fail();
 
     return new Token(line, column, type, match());
 }

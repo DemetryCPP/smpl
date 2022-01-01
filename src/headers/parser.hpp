@@ -1,4 +1,5 @@
 #include "nodes.hpp"
+#include "error.hpp"
 #pragma once
 
 namespace AST
@@ -11,6 +12,8 @@ namespace AST
         Parser(Lexer *lex);
 
         vector<Statement *> stmts;
+        vector<Error *> errors;
+
         Lexer *lex;
 
     private:
@@ -32,6 +35,6 @@ namespace AST
         void next();
 
         Token *current;
-        [[noreturn]] void fail() const;
+        void fail();
     };
 }

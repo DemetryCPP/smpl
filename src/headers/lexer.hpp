@@ -7,6 +7,7 @@ class Token
 public:
     enum class Type
     {
+        Undefined,
         None,       // '\0'
 
         Assignment, // '='

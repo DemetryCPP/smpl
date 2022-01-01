@@ -5,6 +5,6 @@ FLAGS="-Isrc/headers -o smpl -std=c++2a"
 FILES="src/lexer.cpp
        src/parser.cpp
        src/smpl.cpp
-       src/token.cpp"
+       src/utils.cpp"
 
 $CC $FLAGS $FILES $1

@@ -15,8 +15,13 @@ Parser::Parser(Lexer *lex) : lex(lex)
 
     while (current->type != None)
     {
-        stmts.push_back(stmt());
-        match(";");
+        try
+        { 
+            stmts.push_back(stmt());
+            match(";");
+        }
+        catch (Error *e)
+        { errors.push_back(e); }
     }
 };
 
@@ -148,5 +153,12 @@ void Parser::match(string token)
 void Parser::next()
 { current = lex->next(); }
 
-[[noreturn]] void Parser::fail() const
-{ throw new Error(UnexpectedToken, current->line, current->column, current->value); }
+void Parser::fail()
+{
+    auto e = new Error(UnexpectedToken, current->line, current->column, current->value);
+
+    while (current->type != Semicolon) next();
+    match(";");
+
+    throw e;
+}

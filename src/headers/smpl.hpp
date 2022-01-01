@@ -1,33 +1,12 @@
 #include <map>
 #include "nodes.hpp"
+#include "error.hpp"
 
 namespace SMPL
 {
     using namespace std;
     using namespace AST;
-
-    class Error
-    {
-    public:
-        enum class Type
-        {
-            UnexpectedToken,
-            IsNotAFunction,
-            IsNotDefined,
-        } type;
-
-        Error(Type type, size_t line, size_t column, string token) 
-            : line(line), column(column), token(token), type(type) {};
-
-        Error(Type type, size_t line, size_t column, char token)
-            : Error(type, line, column, string(1, token)) {};
-
-        size_t line, column;
-        string token;
-
-        string format();
-    };
-
+    
     class Interpreter
     {
     public:
@@ -44,7 +23,16 @@ namespace SMPL
 
         void eval(string code);
 
+
     private:
+        vector<string> definedFunctions;
+        vector<string> definedVariables;
+
+        void checkSemantic(vector<Statement *>);
+        void checkExprSemantic(Expr *);
+        void checkCallSemantic(Call *);
+        void checkFactSemantic(Fact *);
+
         double get(Token *);
         double call(Call *);
 
@@ -53,5 +41,9 @@ namespace SMPL
         double solve(Fact *);
 
         double value(Token *);
+
+        vector<Error *> errors;
     };
+
+    inline const string version = "1.1";
 }

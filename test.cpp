@@ -36,8 +36,11 @@ int main(int argc, char const *argv[])
 
     try
     { interpreter->eval(code); }
-    catch (Error *e) 
-    { cout << e->format() << endl; }
+    catch (vector<Error *> errors)
+    {
+        for (auto &&e : errors)
+            cout << e->format() << endl;
+    }
 
     return 0;
 }

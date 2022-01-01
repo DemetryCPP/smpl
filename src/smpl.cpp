@@ -1,4 +1,4 @@
-#include <iostream>
+#include <algorithm>
 #include "smpl.hpp"
 #include "parser.hpp"
 
@@ -13,6 +13,12 @@ using FType = Fact::Type;
 void Interpreter::eval(string code)
 {
     auto parser = new Parser(new Lexer(code));
+    errors = parser->errors;
+
+    checkSemantic(parser->stmts);
+
+    if (errors.size() != 0)
+        throw errors;
 
     for (auto &&stmt : parser->stmts)
     {
@@ -78,8 +84,13 @@ double Interpreter::solve(Fact *fact)
     }
 }
 
-template<class K, class V> bool includes(map<K, V> m, K key)
+#define enlist(x) std::begin(x), std::end(x)
+
+template<class K, class V> bool includes(const map<K, V> &m, K key)
 { return m.find(key) != m.end(); }
+
+template<class T> bool includes(const vector<T> &v, T val)
+{ return std::find(enlist(v), val) != v.end(); }
 
 double Interpreter::get(Token *name)
 {
@@ -100,9 +111,9 @@ double Interpreter::call(Call *call)
     if (!includes<string, Function *>(functions, name->value))
         throw new Error(IsNotAFunction, name->line, name->column, name->value);
 
-    auto argOverlapGlobals = includes<string, double>(variables, name->value);
     auto func = functions[name->value];
     auto argname = func->arg;
+    auto argOverlapGlobals = includes<string, double>(variables, argname);
     double result, temp;
 
     if (argOverlapGlobals)
@@ -123,16 +134,73 @@ double Interpreter::value(Token *token)
     if (token->type == Token::Type::Id)     return get(token);
 }
 
-string Error::format()
+void Interpreter::checkSemantic(vector<Statement *> stmts)
 {
-    auto result = "Error at " + to_string(line) + ":" + to_string(column) + ": ",
-         token = "\"" + this->token + "\"";
-
-    switch (type)
+    for (auto &&stmt : stmts)
     {
-        case UnexpectedToken: return result + "Unexpected token " + token;
-        case IsNotAFunction:  return result + token + " is not a function";
-        case IsNotDefined:    return result + token + " is not defined";
-        default:              return "some errors...";
+        switch (stmt->type)
+        {
+        case SType::Function: {
+            auto function = static_cast<Function *>(stmt);
+            auto argOverlapGlobals = includes<string, double>(variables, function->arg);
+            definedVariables.push_back(function->arg);
+            definedFunctions.push_back(function->name->value);
+            checkExprSemantic(function->value);
+            if (!argOverlapGlobals)
+                definedVariables.pop_back();
+        } break;
+
+        case SType::Assign: {
+            auto assign = static_cast<Assign *>(stmt);
+            definedVariables.push_back(assign->name);
+            checkExprSemantic(assign->value);
+        } break;
+
+        case SType::Call: {
+            auto call = static_cast<Call *>(stmt);
+            if (!includes<string>(definedFunctions, call->name->value) && !includes<string, Func>(stdfuncs, call->name->value))
+                errors.push_back(new Error(IsNotAFunction, call->name->line, call->name->column, call->name->value));
+            checkExprSemantic(call->arg);
+        } break;
+        }
+    }
+}
+
+void Interpreter::checkCallSemantic(Call *call)
+{
+    if (!includes<string>(definedFunctions, call->name->value) && !includes<string, Func>(stdfuncs, call->name->value))
+        errors.push_back(new Error(IsNotAFunction, call->name->line, call->name->column, call->name->value));
+    checkExprSemantic(call->arg);
+}
+
+void Interpreter::checkExprSemantic(Expr *expr)
+{
+    for (auto &&t : expr->nodes)
+        for (auto &&f : t->nodes)
+            checkFactSemantic(f);
+}
+
+void Interpreter::checkFactSemantic(Fact *f)
+{
+    switch (f->type)
+    {
+    case FType::Brackets:
+        checkExprSemantic(static_cast<Brackets *>(f)->expr);
+        break;
+    
+    case FType::Literal: {
+        auto literal = static_cast<Literal *>(f)->token;
+        if (literal->type == Token::Type::Id)
+            if (!includes(definedVariables, literal->value) && !includes(variables, literal->value))
+                errors.push_back(new Error(IsNotDefined, literal->line, literal->column, literal->value));
+    } break;
+
+    case FType::Unary: {
+        checkFactSemantic(static_cast<Unary *>(f)->fact);
+    } break;
+
+    case FType::Call: {
+        checkCallSemantic(static_cast<Call *>(f));
+    } break;
     }
 }
