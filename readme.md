@@ -1,6 +1,13 @@
 # What is SMPL
 SMPL is mini programming language. Repository contains his interpeter.
 
+# Compiling
+```sh
+chmod +x compile.sh
+./compile.sh test.cpp
+```
+Warning: required 11 version of g++.
+
 # Syntax
 
 In the end of all lines you must put semicolon.
@@ -21,8 +28,8 @@ Warning: Functions have only one argument.
 Also he have four operators: `+` (addition), `-` (substraction), `*` (multyplying), `/` (division).
 
 # Standart Library
-SMPL have two functions: `input` and `print`
-Warning: use `input(0)` ().
+SMPL has two functions: `input` and `print`
+Warning: use `input(0)`.
 
 # Using
 
