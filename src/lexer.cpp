@@ -71,10 +71,13 @@ Token *Lexer::single()
 
 void Lexer::comments()
 {
-    if (current() == '/' && following() == '/') lineComment();
-    else if (current() == '/' && following() == '*') blockComment();
+    if (isLineComment()) lineComment();
+    else if (isBlockComment()) blockComment();
 
     skipSpaces();
+
+    if (isLineComment() || isBlockComment())
+        comments();
 }
 
 void Lexer::lineComment()
@@ -126,6 +129,12 @@ char Lexer::match()
 
     return code[index++];
 }
+
+bool Lexer::isBlockComment() const
+{ return current() == '/' && following() == '*'; }
+
+bool Lexer::isLineComment() const
+{ return current() == '/' && following() == '/'; }
 
 Pos *Lexer::pos() const
 { return new Pos{line, column, lastLineBegin}; }

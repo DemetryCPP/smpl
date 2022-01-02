@@ -69,6 +69,9 @@ private:
     bool isNumber() const;
     bool isText() const;
 
+    bool isBlockComment() const;
+    bool isLineComment() const;
+
     char following() const;
     char current() const;
     char match();
