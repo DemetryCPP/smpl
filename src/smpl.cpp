@@ -38,6 +38,7 @@ void Interpreter::eval(string code)
         case SType::Function: {
             auto function = static_cast<Function *>(stmt);
             functions[function->name->value] = function;
+            checkExprSemantic(function->value);
         } break;
         }
     }
@@ -79,10 +80,11 @@ double Interpreter::solve(Fact *fact)
 {
     switch (fact->type)
     {
-        case FType::Brackets: return  solve(fact->as<Brackets>()->expr);
-        case FType::Literal:  return  value(fact->as<Literal >()->token);
-        case FType::Unary:    return -solve(fact->as<Unary   >()->fact);
-        case FType::Call:     return   call(fact->as<Call    >());
+        case FType::Brackets: return solve(fact->as<Brackets>()->expr);
+        case FType::Literal:  return value(fact->as<Literal >()->token);
+        case FType::Unary:    return solve(fact->as<Unary   >()->fact) 
+            * (fact->as<Unary>()->op == '-' ? -1 : 1);
+        case FType::Call:     return  call(fact->as<Call    >());
     }
 }
 
@@ -99,7 +101,7 @@ double Interpreter::get(Token *name)
     if (includes<string, double>(variables, name->value))
         return variables[name->value];
 
-    throw new Error(IsNotDefined, name->line, name->column, name->value);
+    throw new Error(IsNotDefined, name->pos, name->value);
 }
 
 double Interpreter::call(Call *call)
@@ -140,13 +142,7 @@ void Interpreter::checkSemantic(vector<Statement *> stmts)
         switch (stmt->type)
         {
         case SType::Function: {
-            auto function = static_cast<Function *>(stmt);
-            auto argOverlapGlobals = includes<string, double>(variables, function->arg);
-            definedVariables.push_back(function->arg);
-            definedFunctions.push_back(function->name->value);
-            checkExprSemantic(function->value);
-            if (!argOverlapGlobals)
-                definedVariables.pop_back();
+            checkFunctionSemantic(static_cast<Function *>(stmt));
         } break;
 
         case SType::Assign: {
@@ -156,19 +152,26 @@ void Interpreter::checkSemantic(vector<Statement *> stmts)
         } break;
 
         case SType::Call: {
-            auto call = static_cast<Call *>(stmt);
-            if (!includes<string>(definedFunctions, call->name->value) && !includes<string, Func>(stdfuncs, call->name->value))
-                errors.push_back(new Error(IsNotAFunction, call->name->line, call->name->column, call->name->value));
-            checkExprSemantic(call->arg);
+            checkCallSemantic(static_cast<Call *>(stmt));
         } break;
         }
     }
 }
 
+void Interpreter::checkFunctionSemantic(Function *function)
+{
+    auto argOverlapGlobals = includes<string, double>(variables, function->arg);
+    definedVariables.push_back(function->arg);
+    definedFunctions.push_back(function->name->value);
+    checkExprSemantic(function->value);
+    if (!argOverlapGlobals)
+        definedVariables.pop_back();
+}
+
 void Interpreter::checkCallSemantic(Call *call)
 {
     if (!includes<string>(definedFunctions, call->name->value) && !includes<string, Func>(stdfuncs, call->name->value))
-        errors.push_back(new Error(IsNotAFunction, call->name->line, call->name->column, call->name->value));
+        errors.push_back(new Error(IsNotAFunction, call->name->pos, call->name->value));
     checkExprSemantic(call->arg);
 }
 
@@ -191,15 +194,15 @@ void Interpreter::checkFactSemantic(Fact *f)
         auto literal = f->as<Literal>()->token;
         if (literal->type == Id)
             if (!includes(definedVariables, literal->value) && !includes(variables, literal->value))
-                errors.push_back(new Error(IsNotDefined, literal->line, literal->column, literal->value));
+                errors.push_back(new Error(IsNotDefined, literal->pos, literal->value));
     } break;
 
     case FType::Unary: {
-        checkFactSemantic(static_cast<Unary *>(f)->fact);
+        checkFactSemantic(f->as<Unary>()->fact);
     } break;
 
     case FType::Call: {
-        checkCallSemantic(static_cast<Call *>(f));
+        checkCallSemantic(f->as<Call>());
     } break;
     }
 }

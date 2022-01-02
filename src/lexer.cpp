@@ -1,7 +1,7 @@
 #include "smpl.hpp"
 
 using namespace SMPL;
-
+using Pos = Token::Pos;
 using enum Token::Type;
 using enum Error::Type;
 
@@ -11,7 +11,7 @@ Token *Lexer::next()
     comments();
 
     if (index >= code.length())
-        return new Token(line, column);
+        return new Token(pos());
 
     if (isNumber()) return number();
     if (isText())   return word();
@@ -23,7 +23,7 @@ Token *Lexer::number()
 {
     string buffer;
     bool isDouble = false;
-    size_t column = this->column;
+    Token::Pos *pos = this->pos();
     buffer += match();
 
     while (isNumber())
@@ -35,22 +35,22 @@ Token *Lexer::number()
         buffer += match();
     }
 
-    return new Token(line, column, Number, buffer);
+    return new Token(Number, pos, buffer);
 }
 
 Token *Lexer::word()
 {
     string buffer;
-    size_t column = this->column;
+    Token::Pos *pos = this->pos();
     buffer += match();
 
     while (isText() || isdigit(current()))
         buffer += match();
 
     if (buffer == "define")
-        return new Token(line, column, Keyword, buffer);
+        return new Token(Define, pos, buffer);
 
-    return new Token(line, column, Id, buffer);
+    return new Token(Id, pos, buffer);
 }
 
 Token *Lexer::single()
@@ -66,7 +66,7 @@ Token *Lexer::single()
         { ')', CBracket },
     })[current()];
 
-    return new Token(line, column, type, match());
+    return new Token(type, pos(), match());
 }
 
 void Lexer::comments()
@@ -92,7 +92,10 @@ void Lexer::blockComment()
 }
 
 void Lexer::skipSpaces()
-{ while (current() <= ' ' && index < code.length()) match(); }
+{ 
+    while (current() <= ' ' && index < code.length()) 
+        match();
+}
 
 bool Lexer::isNumber() const
 { return isdigit(current()) || current() == '.'; }
@@ -118,10 +121,14 @@ char Lexer::match()
     {
         line++;
         column = 1;
+        lastLineBegin = index + 1;
     }
 
     return code[index++];
 }
 
+Pos *Lexer::pos() const
+{ return new Pos{line, column, lastLineBegin}; }
+
 void Lexer::fail() const
-{ throw new Error(UnexpectedToken, line, column, current()); }
+{ throw new Error(UnexpectedToken, pos(), current()); }

@@ -5,6 +5,9 @@
 class Token
 {
 public:
+    struct Pos
+    { size_t line, column, lineIndex; };
+
     enum class Type
     {
         Undefined,
@@ -16,22 +19,22 @@ public:
         Semicolon,  // ';'
         OBracket,   // '('
         CBracket,   // ')'
-        Keyword,    // 'define'
+        Define,    // 'define'
         Number,     // \d+(\.\d+)?
         Id          // [a-zA-Z]+
     } type;
 
-    Token(size_t line, size_t column, Type type, std::string value) 
-        : type(type), value(value), line(line), column(column) {};
+    Token(Type type, Pos *pos, std::string value) 
+        : type(type), value(value), pos(pos) {};
 
-    Token(size_t line, size_t column, Type type, char value)
-        : Token(line, column, type, std::string(1, value)) {};
+    Token(Type type, Pos *pos, char value)
+        : Token(type, pos, std::string(1, value)) {};
 
-    Token(size_t line, size_t column)
-        : Token(line, column, Token::Type::None, "") {};
+    Token(Pos *pos)
+        : Token(Token::Type::None, pos, "") {};
 
-    size_t line, column;
     std::string value;
+    Pos *pos;
 
     void log() const;
 
@@ -47,7 +50,10 @@ public:
     Token *next();
     std::string code;
 
-    size_t index = 0, line = 1, column = 1;
+    size_t index = 0, 
+            line = 1, 
+          column = 1, 
+   lastLineBegin = 0;
 
 private:
     Token *single();
@@ -67,5 +73,6 @@ private:
     char current() const;
     char match();
 
+    Token::Pos *pos() const;
     [[noreturn]] void fail() const;
 };

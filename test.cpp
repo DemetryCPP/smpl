@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     catch (vector<Error *> errors)
     {
         for (auto &&e : errors)
-            cout << e->format() << endl;
+            cout << e->format(code, argv[1]) << endl;
     }
 
     return 0;

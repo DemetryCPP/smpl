@@ -18,7 +18,7 @@ Parser::Parser(Lexer *lex) : lex(lex)
         try
         { 
             stmts.push_back(stmt());
-            match(";");
+            match(Semicolon);
         }
         catch (Error *e)
         { errors.push_back(e); }
@@ -27,13 +27,13 @@ Parser::Parser(Lexer *lex) : lex(lex)
 
 Statement *Parser::stmt()
 {
-    if (current->value == "define") return function();
+    if (current == Define) return function();
     else
     {
         auto id = match(Id);
 
-        if (current->value == "=")      return assign(id->value);
-        else if (current->value == "(") return call(id);
+        if (current == Assignment) return assign(id->value);
+        if (current == OBracket)   return call(id);
     }
 
     fail();
@@ -41,27 +41,27 @@ Statement *Parser::stmt()
 
 Function *Parser::function()
 {
-    match("define");
+    match(Define);
     auto name = match(Id);
-    match("(");
+    match(OBracket);
     auto arg = match(Id)->value;
-    match(")");
-    match("=");
+    match(CBracket);
+    match(Assignment);
 
     return new Function(name, arg, expr());
 }
 
 Assign *Parser::assign(string id)
 {
-    match("=");
+    match(Assignment);
     return new Assign(id, expr());
 }
 
 Call *Parser::call(Token *id)
 {
-    match("(");
+    match(OBracket);
     auto expr = this->expr();
-    match(")");
+    match(CBracket);
 
     return new Call(id, expr);
 }
@@ -106,31 +106,28 @@ Fact *Parser::fact()
     {
         auto id = match(Id);
 
-        if (current->value == "(") 
+        if (current == OBracket) 
             return call(id);
         
         return new Literal(id);
     }
-    else if (current->value == "-") return unary();
-    else if (current->value == "(") return brackets();
+    else if (current == AOperator) return unary();
+    else if (current == OBracket)  return brackets();
 
     fail();
 }
 
 Brackets *Parser::brackets()
 {
-    match("(");
+    match(OBracket);
     auto expr = this->expr();
-    match(")");
+    match(CBracket);
 
     return new Brackets(expr);
 }
 
 Unary *Parser::unary()
-{
-    match("-");
-    return new Unary(fact());
-}
+{ return new Unary(match(AOperator)->value[0], fact()); }
 
 Token *Parser::match(Token::Type type)
 {
@@ -155,10 +152,10 @@ void Parser::next()
 
 void Parser::fail()
 {
-    auto e = new Error(UnexpectedToken, current->line, current->column, current->value);
+    auto e = new Error(UnexpectedToken, current->pos, current->value);
 
     while (current != Semicolon) next();
-    match(";");
+    match(Semicolon);
 
     throw e;
 }

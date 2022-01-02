@@ -1,4 +1,5 @@
 #include <string>
+#include "lexer.hpp"
 #pragma once
 
 class Error
@@ -11,14 +12,14 @@ public:
         IsNotDefined,
     } type;
 
-    Error(Type type, size_t line, size_t column, std::string token) 
-        : line(line), column(column), token(token), type(type) {};
+    Error(Type type, Token::Pos *pos, std::string token) 
+        : pos(pos), token(token), type(type) {};
 
-    Error(Type type, size_t line, size_t column, char token)
-        : Error(type, line, column, std::string(1, token)) {};
+    Error(Type type, Token::Pos *pos, char token)
+        : Error(type, pos, std::string(1, token)) {};
 
-    size_t line, column;
+    Token::Pos *pos;
     std::string token;
 
-    std::string format();
+    std::string format(const std::string &code, const std::string &filename);
 };

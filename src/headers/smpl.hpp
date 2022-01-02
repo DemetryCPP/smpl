@@ -28,6 +28,7 @@ namespace SMPL
         vector<string> definedVariables;
 
         void checkSemantic(vector<Statement *>);
+        void checkFunctionSemantic(Function *);
         void checkExprSemantic(Expr *);
         void checkCallSemantic(Call *);
         void checkFactSemantic(Fact *);

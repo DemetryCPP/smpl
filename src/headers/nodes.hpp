@@ -13,7 +13,8 @@ namespace AST
             Literal, Unary,
         } type;
 
-        template<class T> T *as();
+        template<class T> T *as()
+        { return static_cast<T *>(this); };
     };
 
     struct Term
@@ -33,7 +34,8 @@ namespace AST
         enum class Type
         { Function, Assign, Call } type;
 
-        template<class T> T *as();
+        template<class T> T *as()
+        { return static_cast<T *>(this); };
     };
 
     struct Function : Statement
@@ -79,11 +81,12 @@ namespace AST
 
     struct Unary : Fact
     {
-        Unary(Fact *fact)
+        Unary(char op, Fact *fact)
             : Fact{Fact::Type::Unary}
             , fact(fact) {};
 
         Fact *fact;
+        char op;
     };
 
     struct Brackets : Fact
