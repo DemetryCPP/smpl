@@ -9,6 +9,11 @@
 using namespace SMPL;
 using namespace std;
 
+int comp(Error *a, Error *b)
+{
+    return a->pos->line - b->pos->line;
+};
+
 int main(int argc, char const *argv[])
 {
     if (argc == 1)
@@ -38,6 +43,7 @@ int main(int argc, char const *argv[])
     { interpreter->eval(code); }
     catch (vector<Error *> errors)
     {
+        sort(errors.begin(), errors.end(), comp);
         for (auto &&e : errors)
             cout << e->format(code, argv[1]) << endl;
     }
