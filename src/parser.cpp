@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include "parser.hpp"
 #include "smpl.hpp"
 
@@ -36,7 +37,7 @@ Statement *Parser::stmt()
         if (current == OBracket)   return call(id);
     }
 
-    fail();
+    fail("statement");
 }
 
 Function *Parser::function()
@@ -114,7 +115,7 @@ Fact *Parser::fact()
     else if (current == AOperator) return unary();
     else if (current == OBracket)  return brackets();
 
-    fail();
+    fail("expression");
 }
 
 Brackets *Parser::brackets()
@@ -138,21 +139,30 @@ Token *Parser::match(Token::Type type)
         return result;
     }
     
-    fail();
+    fail(map<Token::Type, string>({
+        { Assignment, "'='"         }, 
+        { AOperator,  "operator"    },
+        { MOperator,  "operator"    },
+        { Semicolon,  "';'"         },
+        { OBracket,   "'('"         },
+        { CBracket,   "')'"         },
+        { Number,     "number"      },
+        { Id,         "identifier"  }
+    })[type]);
 }
 
 void Parser::match(string token)
 {
     if (current->value == token) next();
-    else fail();
+    else fail(token);
 }
 
 void Parser::next()
 { current = lex->next(); }
 
-void Parser::fail()
+void Parser::fail(string expected)
 {
-    auto e = new Error(UnexpectedToken, current->pos, current->value);
+    auto e = new Error(UnexpectedToken, current->pos, current->value, "expected " + expected);
 
     while (current != Semicolon) next();
     match(Semicolon);

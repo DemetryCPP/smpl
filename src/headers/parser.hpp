@@ -35,6 +35,6 @@ namespace AST
         void next();
 
         Token *current;
-        void fail();
+        void fail(string expected);
     };
 }

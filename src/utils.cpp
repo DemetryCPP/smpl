@@ -61,6 +61,15 @@ string Error::format(const string &code, const string &filename)
     result += prefix + line + '\n';
     result += "    | " + string(pos->column - 1, ' ') + COLOR_RED "^" + string(this->token.length() - 1, '~') + COLOR_RESET;
 
+    if (hint.length() != 0)
+    {
+        result += "\n";
+        result += "    | " + string(pos->column - 1, ' ') + COLOR_RED "|" + "\n" COLOR_RESET;
+        result += "    | " + string(pos->column - 1, ' ') + COLOR_RED + hint + COLOR_RESET;
+    }
+
+    result += COLOR_RESET;
+
     return result;
 }
 
