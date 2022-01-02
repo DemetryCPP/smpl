@@ -1,0 +1,8 @@
+// function declaration with name "square"
+define square(x) = x * x;
+
+// create variable with name "a" and value number from console
+a = input(0);
+
+// output square of a
+print(square(a));

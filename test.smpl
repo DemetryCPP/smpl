@@ -1,3 +1,0 @@
-define square(x) = x * x;
-variable = 2 + id;
-print(square(variable =));
