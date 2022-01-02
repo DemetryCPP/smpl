@@ -1,6 +1,0 @@
-define square(2) = x * x; // expected identifier
-
-a = 2 *; // expected expression 
-
-print(func(b)); // "b" is not defined
-                // "func" is not a function
