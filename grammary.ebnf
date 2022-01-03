@@ -1,0 +1,12 @@
+stmt = if | while | (func | declare | call) ';';
+
+if      = 'if' '(' expr ')' block [ 'else' block ];
+func    = 'define' id '(' fargs ')' '=' expr;
+while   = 'while' '(' expr ')' block;
+declare = modifer id '=' expr;
+call    = id '(' cargs ')';
+
+block = '{' [{ stmt }] '}';
+
+fargs = [  id  { ','  id  } ];
+cargs = [ expr { ',' expr } ];
