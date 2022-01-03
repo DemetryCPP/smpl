@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-namespace SMPL
+namespace SMPL::Data
 {
     struct Operator
     {
