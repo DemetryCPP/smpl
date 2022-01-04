@@ -4,9 +4,14 @@ if      = 'if' '(' expr ')' block [ 'else' block ];
 func    = 'define' id '(' fargs ')' '=' expr;
 while   = 'while' '(' expr ')' block;
 declare = modifer id '=' expr;
-call    = id '(' cargs ')';
 
 block = '{' [{ stmt }] '}';
+
+fact = literal | brackets | call;
+
+call     = id '(' cargs ')';
+literal  = id | num;
+brackets = '(' expr ')';
 
 fargs = [  id  { ','  id  } ];
 cargs = [ expr { ',' expr } ];
