@@ -78,6 +78,16 @@ namespace SMPL::AST
         Expr *value;
     };
 
+    struct While : Statement
+    {
+        While(Expr *cond, Block *block)
+            : cond(cond), block(block)
+            , Statement{Statement::Type::While} {};
+
+        Expr *cond;
+        Block *block;
+    };
+
     struct Func : Statement
     {
         Func(string name, vector<Token *> args, Expr *value)
