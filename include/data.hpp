@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#pragma once
 
 namespace SMPL::Data
 {
