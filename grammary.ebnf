@@ -1,4 +1,4 @@
-stmt = if | while | (func | declare | call) ';';
+stmt = if | while | (func | declare | expr) ';';
 
 if      = 'if' '(' expr ')' block [ 'else' block ];
 func    = 'define' id '(' fargs ')' '=' expr;
