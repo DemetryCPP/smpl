@@ -1,0 +1,2 @@
+let huita = 2;
+print(huita);

@@ -1,18 +1,44 @@
 #include "lexer.hpp"
+#include "data.hpp"
 #include "ast.hpp"
 
-using namespace SMPL::AST;
-
-class Parser
+namespace SMPL::AST
 {
-public:
-    Parser(Lexer *lex)
-        : lex(lex) {};
+    class Parser
+    {
+    public:
+        Parser(Lexer *lex);
 
-    Lexer *lex;
-    Statement *stmt();
+        Lexer *lex;
+        Statement *stmt();
 
-private:
-    If *ifstatement();
-    
-};
+        vector<Statement *> stmts;
+
+    private:
+        Declare *declareStmt();
+        While   *whileStmt();
+        Func    *funcStmt();
+        If      *ifStmt();
+
+        Block *block();
+
+        Expr *expr();
+        Expr *expr(size_t);
+
+        Expr *assign();
+        Expr *unary();
+        Expr *fact();
+        Call *call();
+
+        vector<Token *> fargs();
+        vector<Expr *> cargs();
+
+        Token *current, *__following = nullptr;
+
+        Token *following();
+        Token *match(Token::Name);
+        Token *next();
+
+        size_t getPriority();
+    };
+}

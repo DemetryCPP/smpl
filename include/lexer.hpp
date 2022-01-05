@@ -11,6 +11,8 @@ public:
     const std::string &code;
 
     Token *next();
+    Token::Pos *getPos() const;
+    size_t index = 0;
 
 private:
     Token *special();
@@ -32,9 +34,6 @@ private:
     char following() const;
     char current() const;
     char match();
-
-    Token::Pos *getPos() const;
-    size_t index = 0;
 
     [[noreturn]] void fail() const;
 };
