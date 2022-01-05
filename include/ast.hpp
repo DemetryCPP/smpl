@@ -19,8 +19,8 @@ namespace SMPL::AST
     {
         enum class Type
         {
-            Brackets, Unary,
-            Literal, Call, Node,
+            Node, Literal, 
+            Call, Unary, 
         } type;
 
         Expr(Type type) : type(type), Statement{Statement::Type::Expr} {};
@@ -33,12 +33,6 @@ namespace SMPL::AST
 
         vector<Expr *> nodes;
         vector<string> operators;
-    };
-
-    struct Brackets : Expr
-    {
-        Brackets(Expr *expr) : expr(expr), Expr(Expr::Type::Brackets) {};
-        Expr *expr;
     };
 
     struct Literal : Expr
@@ -64,8 +58,8 @@ namespace SMPL::AST
 
     struct Block
     {
-        Environment *env;   
         vector<Statement *> stmts;
+        Environment *env;   
     };
 
     struct Declare : Statement
@@ -90,19 +84,20 @@ namespace SMPL::AST
 
     struct Func : Statement
     {
-        Func(string name, vector<Token *> args, Expr *value)
-            : name(name), args(args), value(value)
+        Func(string name, vector<Token *> args, Expr *expr)
+            : name(name), args(args), expr(expr)
             , Statement{Statement::Type::Func} {};
 
         string name;
         vector<Token *> args;
-        Expr *value;
+        Expr *expr;
     };
 
     struct If : Statement
     {
         If(Expr *cond, Block *block, Block *elseBlock)
-            : cond(cond), block(block), elseBlock(elseBlock), hasElse(true) {};
+            : cond(cond), block(block), elseBlock(elseBlock), hasElse(true)
+            , Statement{Statement::Type::If} {};
 
         If(Expr *cond, Block *block)
             : cond(cond), block(block), hasElse(false)
