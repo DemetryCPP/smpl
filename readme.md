@@ -1,5 +1,5 @@
 # What is SMPL
-SMPL is mini programming language. Repository contains his interpeter.
+SMPL is mini programming language. Repository contains its interpeter.
 
 # Compiling and using
 ```sh
@@ -29,7 +29,7 @@ name(expression);
 ```
 Warning: Functions have only one argument.
 
-Also he have four operators: `+` (addition), `-` (substraction), `*` (multyplying), `/` (division).
+Also it has four operators: `+` (addition), `-` (substraction), `*` (multyplying), `/` (division).
 
 # Standart Library
 SMPL has two functions: `input` and `print`
@@ -56,12 +56,12 @@ interpreter->eval(yourcode);
 
 # Catch errors
 Interpreter throws `vector<Error *>`.
-they have type (`Error::Type type`):
+They have type (`Error::Type type`):
 
 `Error::Type::UnexpectedToken` - unexpected token.
 
-`Error::Type::IsNotAFunction` - environment does not have function, with this name (e->token - her name).
+`Error::Type::IsNotAFunction` - environment does not have function, with this name (e->token - its name).
 
-`Error::Type::IsNotDefined` - environment does not have variable (e->token - her name).
+`Error::Type::IsNotDefined` - environment does not have variable (e->token - its name).
 
-You can use standart method `SMPL::Error::format()` for get error message.
+You can use standard method `SMPL::Error::format()` to get an error message.
